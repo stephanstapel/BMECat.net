@@ -24,10 +24,6 @@ namespace BMECat.net_Test
     {
         internal void run()
         {
-            string path = @"E:\develop\BMECatCreator\nowecor.xml";
-            ProductCatalog loadedCatalog = ProductCatalog.Load(path);
-            return;
-
             ProductCatalog catalog = new ProductCatalog()
             {
                 Languages = { LanguageCodes.DEU },
