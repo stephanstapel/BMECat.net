@@ -70,10 +70,10 @@ namespace BMECat.net
                     No = XmlUtils.nodeAsString(productNode, "./SUPPLIER_PID"),
                     DescriptionShort = XmlUtils.nodeAsString(productNode, "./PRODUCT_DETAILS/DESCRIPTION_SHORT"),
                     DescriptionLong = XmlUtils.nodeAsString(productNode, "./PRODUCT_DETAILS/DESCRIPTION_LONG"),
+                    EANCode = XmlUtils.nodeAsString(productNode, "./PRODUCT_DETAILS/EAN"),
                     Stock = XmlUtils.nodeAsInt(productNode, "./PRODUCT_DETAILS/STOCK"),
                     OrderUnit = default(QuantityCodes).FromString(XmlUtils.nodeAsString(productNode, "./PRODUCT_ORDER_DETAILS/ORDER_UNIT")),
                     ContentUnit = default(QuantityCodes).FromString(XmlUtils.nodeAsString(productNode, "./PRODUCT_ORDER_DETAILS/CONTENT_UNIT")),
-                    EANCode = XmlUtils.nodeAsString(productNode, "./EAN"),
                     Currency = default(CurrencyCodes).FromString(XmlUtils.nodeAsString(productNode, "./PRODUCT_PRICE_DETAILS/PRODUCT_PRICE/PRICE_CURRENCY")),
                     VAT = XmlUtils.nodeAsInt(productNode, "./PRODUCT_PRICE_DETAILS/PRODUCT_PRICE/TAX")
                 };

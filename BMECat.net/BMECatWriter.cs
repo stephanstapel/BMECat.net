@@ -49,7 +49,7 @@ namespace BMECat.net
             #region XML-Kopfbereich
             Writer.WriteStartElement("BMECAT");
             Writer.WriteAttributeString("version", "2005");
-            Writer.WriteAttributeString("xmlns", "xsi", null, "http://www.bmecat.org/bmecat/1.2/bmecat_new_catalog");
+            Writer.WriteAttributeString("xmlns", "xsi", null, "http://www.bmecat.org/bmecat/2005fd");
             #endregion // !XML-Kopfbereich
 
             #region Header
@@ -103,11 +103,11 @@ namespace BMECat.net
                 Writer.WriteStartElement("PRODUCT");
                 Writer.WriteAttributeString("mode", "new");
                 _writeOptionalElementString(Writer, "SUPPLIER_PID", product.No);
-                _writeOptionalElementString(Writer, "EAN", product.EANCode);
 
                 Writer.WriteStartElement("PRODUCT_DETAILS");
                 _writeOptionalElementString(Writer, "DESCRIPTION_SHORT", product.DescriptionShort);
                 _writeOptionalElementString(Writer, "DESCRIPTION_LONG", product.DescriptionLong);
+                _writeOptionalElementString(Writer, "EAN", product.EANCode);
                 _writeOptionalElementString(Writer, "STOCK", String.Format("{0}", product.Stock));
                 Writer.WriteEndElement(); // !PRODUCT_DETAILS
 

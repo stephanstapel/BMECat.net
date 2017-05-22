@@ -42,7 +42,7 @@ namespace BMECat.net
         {
             try
             {
-                return (LanguageCodes)Enum.Parse(typeof(LanguageCodes), s);
+                return (LanguageCodes)Enum.Parse(typeof(LanguageCodes), s.ToUpper());
             }
             catch
             {
@@ -53,7 +53,7 @@ namespace BMECat.net
 
         public static string EnumToString(this LanguageCodes c)
         {
-            return c.ToString("g");
+            return c.ToString("g").ToLower();
         } // !ToString()
     }
 }
