@@ -1,6 +1,13 @@
 # BMECat.net
-
 .net library for reading and writing BMECat product catalogues.
+
+The library has a sister library (https://github.com/stephanstapel/OpenTrans.net) which allows to process order files.
+
+
+# Installation
+Installation so far is manually, since no nuget packages was created yet.
+
+# Usage
 
 Creation of catalogue files is simple:
 ```C#
@@ -57,6 +64,7 @@ catalog.Save("test.xml");
 
 That's it.
 
+# More information
 More information about BMEcat can be found here:
 * https://de.wikipedia.org/wiki/BMEcat
 * http://www.bme.de/initiativen/bmecat/
