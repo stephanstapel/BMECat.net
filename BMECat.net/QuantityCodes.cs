@@ -716,6 +716,11 @@ namespace BMECat.net
         D99,
         DAA,
         DAD,
+
+        /// <summary>
+        /// Tag
+        /// Abkürzung: Tag(e)
+        /// </summary>
         DAY,
         DB,
         DC,
@@ -842,6 +847,11 @@ namespace BMECat.net
         H1,
         H2,
         HA,
+
+        /// <summary>
+        /// Hektar
+        /// Abkürzung: ha
+        /// </summary>
         HAR,
         HBA,
         HBX,
@@ -867,6 +877,10 @@ namespace BMECat.net
         HS,
         HT,
         HTZ,
+        /// <summary>
+        /// Stunde
+        /// Abkürzung: Std.
+        /// </summary>
         HUR,
         HY,
         IA,
@@ -942,6 +956,11 @@ namespace BMECat.net
         /// German: Kit
         /// </summary>
         KT,
+
+        /// <summary>
+        /// Kilometer
+        /// Abkürzung: km
+        /// </summary>
         KTM,
         KTN,
         KUR,
@@ -949,6 +968,11 @@ namespace BMECat.net
         KVR,
         KVT,
         KW,
+
+        /// <summary>
+        /// Kilowattstune
+        /// Abkürzung: kWh
+        /// </summary>
         KWH,
         KWT,
         KX,
@@ -971,6 +995,11 @@ namespace BMECat.net
         LP,
         LPA,
         LR,
+
+        /// <summary>
+        /// Pauschale
+        /// Abkürzung: pausch.
+        /// </summary>
         LS,
         LTN,
 
@@ -1004,6 +1033,11 @@ namespace BMECat.net
         MHZ,
         MIK,
         MIL,
+
+        /// <summary>
+        /// Minute
+        /// Abkürzung: min
+        /// </summary>
         MIN,
         MIO,
         MIU,
@@ -1015,6 +1049,11 @@ namespace BMECat.net
         /// German: Mililiter
         /// </summary>
         MLT,
+
+        /// <summary>
+        /// Quadratmillimeter
+        /// Abkürzung: mm^2
+        /// </summary>
         MMK,
         MMQ,
 
@@ -1036,6 +1075,11 @@ namespace BMECat.net
         /// German: Quadratmeter
         /// </summary>
         MTK,
+
+        /// <summary>
+        /// Kubikmeter
+        /// Abkürzung: m^3 
+        /// </summary>
         MTQ,
 
         /// <summary>
@@ -1051,6 +1095,11 @@ namespace BMECat.net
         N2,
         N3,
         NA,
+
+        /// <summary>
+        /// Anzahl Artikel
+        /// Abkürzung: Anz.
+        /// </summary>
         NAR,
         NB,
         NBB,
@@ -1070,6 +1119,11 @@ namespace BMECat.net
         NMP,
         NN,
         NPL,
+
+        /// <summary>
+        /// Anzahl Paare
+        /// Abkürzung: Pr.
+        /// </summary>
         NPR,
         NPT,
         NQ,
@@ -1096,6 +1150,11 @@ namespace BMECat.net
         OZA,
         OZI,
         P0,
+
+        /// <summary>
+        /// Prozent
+        /// Abkürzung: %
+        /// </summary>
         P1,
         P2,
         P3,
@@ -1113,6 +1172,11 @@ namespace BMECat.net
         PA,
         PAL,
         PB,
+
+        /// <summary>
+        /// Stück
+        /// </summary>
+        PCE,
 
         /// <summary>
         /// English: Pad
@@ -1274,6 +1338,11 @@ namespace BMECat.net
         /// German: Dose
         /// </summary>
         TN,
+
+        /// <summary>
+        /// Tonne (metrisch)
+        /// Abkürzung:  t
+        /// </summary>
         TNE,
         TP,
         TPR,
@@ -1316,6 +1385,11 @@ namespace BMECat.net
         WCD,
         WE,
         WEB,
+
+        /// <summary>
+        /// Woche
+        /// Abkürzung: Woche(n)
+        /// </summary>
         WEE,
         WG,
         WH,
