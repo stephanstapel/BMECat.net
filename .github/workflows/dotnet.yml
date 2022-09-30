@@ -26,5 +26,5 @@ jobs:
     - name: Restore library dependencies 
       run: dotnet restore BMECat.net/BMECat.net.csproj
     - name: Build library
-      run: dotnet build dotnet build BMECat.net/BMECat.net.csproj --no-restore
+      run: dotnet build BMECat.net/BMECat.net.csproj --no-restore
     
