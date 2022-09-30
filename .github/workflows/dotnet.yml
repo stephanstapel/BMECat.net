@@ -23,3 +23,8 @@ jobs:
       run: dotnet build dotnet build BMECat.net-Test/BMECat.net-Test.csproj --no-restore
     - name: Actual test
       run: dotnet test BMECat.net-Test/BMECat.net-Test.csproj --no-build --verbosity normal        
+    - name: Restore library dependencies 
+      run: dotnet restore BMECat.net/BMECat.net.csproj
+    - name: Build library
+      run: dotnet build dotnet build BMECat.net/BMECat.net.csproj --no-restore
+    
