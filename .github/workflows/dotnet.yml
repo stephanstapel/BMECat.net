@@ -1,0 +1,30 @@
+name: .NET
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v2
+      with:
+        dotnet-version: 6.0.x
+    - name: Restore dependencies test
+      run: dotnet restore BMECat.net-Test/BMECat.net-Test.csproj
+    - name: Build test
+      run: dotnet build BMECat.net-Test/BMECat.net-Test.csproj --no-restore
+    - name: Actual test
+      run: dotnet test BMECat.net-Test/BMECat.net-Test.csproj --no-build --verbosity normal        
+    - name: Restore library dependencies 
+      run: dotnet restore BMECat.net/BMECat.net.csproj
+    - name: Build library
+      run: dotnet build BMECat.net/BMECat.net.csproj --no-restore
+    
