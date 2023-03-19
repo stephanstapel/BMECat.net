@@ -64,6 +64,16 @@ catalog.Save("test.xml");
 
 That's it.
 
+# Building on your own
+
+Prerequisites:
+* Visual Studio >= 2017
+* .net Framework >= 4.6.1 (for .net Standard 2.0 support)
+
+Open BMECat.net/BMECat.net.sln solution file. Choose Release or Debug mode and hit 'Build'. That's it.
+
+For running the tests, open BMECat.net-Test/BMECat.net-Test.sln and run the unit tests. The tests show good cases on how to use the library.
+
 # More information
 More information about BMEcat can be found here:
 * https://de.wikipedia.org/wiki/BMEcat
