@@ -4,8 +4,15 @@ BMECat.net is a .net open source library that allows you to read and write BMEca
 The library has a sister library (https://github.com/stephanstapel/OpenTrans.net) which allows to process order files.
 
 
+# License
+Subject to the Apache license http://www.apache.org/licenses/LICENSE-2.0.html
+
 # Installation
-Installation so far is manually, since no nuget packages was created yet.
+Just use nuget or Visual Studio Package Manager and download 'BMECat.net'.
+
+You can find more information about the nuget package here:
+
+https://www.nuget.org/packages/BMECat.net/
 
 # Usage
 
