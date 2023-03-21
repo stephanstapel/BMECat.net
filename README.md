@@ -16,6 +16,7 @@ Just use nuget or Visual Studio Package Manager and download 'BMECat.net'.
 You can find more information about the nuget package here:
 
 [![NuGet](https://img.shields.io/nuget/v/BMECat.net?color=blue)](https://www.nuget.org/packages/BMECat.net/)
+
 https://www.nuget.org/packages/BMECat.net/
 
 # Usage
