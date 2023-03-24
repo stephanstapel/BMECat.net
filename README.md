@@ -1,4 +1,6 @@
 # BMECat.net
+[![NuGet](https://img.shields.io/nuget/v/BMECat.net?color=blue)](https://www.nuget.org/packages/BMECat.net/)
+
 BMECat.net is a .net open source library that allows you to read and write BMEcat descriptions would be a software component that provides developers with a set of tools and functionalities to manipulate BMEcat files programmatically. This library would enable software applications to easily integrate BMEcat support, allowing for the efficient exchange of product information between different systems and partners. Developers could use this library to parse, create, and modify BMEcat documents, accessing product data in a standardized and structured way. Overall, this library simplifies the development of software applications that rely on BMEcat for product information exchange.
 
 The library supports both version 1.2 and 2005. Support for extended data structures (like product features, address details) is for reading only so far. If you need to create BMECat files with extended data structures, drop me a message.
@@ -13,6 +15,8 @@ Subject to the Apache license http://www.apache.org/licenses/LICENSE-2.0.html
 Just use nuget or Visual Studio Package Manager and download 'BMECat.net'.
 
 You can find more information about the nuget package here:
+
+[![NuGet](https://img.shields.io/nuget/v/BMECat.net?color=blue)](https://www.nuget.org/packages/BMECat.net/)
 
 https://www.nuget.org/packages/BMECat.net/
 
