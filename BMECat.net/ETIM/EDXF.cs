@@ -20,15 +20,17 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BMECat.net
+namespace BMECat.net.ETIM
 {
-    public class MimeInfo
+    public class EDXF
     {
-        public MimeTypes MimeType { get; set; }
-        public string Source { get; set; }
-        public string Description { get; set; }
-        public string Alt { get; set; }
-        public string Purpose { get; set; }
-        public int? Order { get; set; }
+        public string ManufacturerAcronym { get; set; }
+        public List<string> ManufacturerDiscountGroups { get; set; } = new List<string>();
+        public List<string> SupplierDiscountGroups { get; set; } = new List<string>();
+        public List<string> ProductSeries { get; set; } = new List<string>();
+        public List<PackagingUnit> PackagingUnits { get; set; } = new List<PackagingUnit>();
+        public List<MimeInfo> MimeInfos { get; set; } = new List<MimeInfo>();
+        public ProductLogisticsDetails ProductLogisticsDetails { get; set; }
+        public Reach Reach { get; set; }
     }
 }

@@ -16,7 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-using BMECat.net;
+using BMECat.net.ETIM;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -331,8 +331,72 @@ namespace BMECat.net
                 });
             }
 
+            XmlNode extensionNode = productNode.SelectSingleNode("./bmecat:USER_DEFINED_EXTENSIONS", nsmgr);
+            if (extensionNode != null)
+            {
+                if (extensionNode.InnerXml.Contains(".EDXF."))
+                {
+                    product.EDXF = _readEDXF(extensionNode, nsmgr);
+                }                
+            }
+
             return product;
         } // !_ReadProduct()
+
+
+        private static EDXF _readEDXF(XmlNode extensionNode, XmlNamespaceManager nsmgr)
+        {
+            EDXF retval = new EDXF()
+            {
+                ManufacturerAcronym = XmlUtils.nodeAsString(extensionNode, "./bmecat:UDX.EDXF.MANUFACTURER_ACRONYM", nsmgr),
+                ManufacturerDiscountGroups = XmlUtils.nodesAsStrings(extensionNode, "./bmecat:UDX.EDXF.DISCOUNT_GROUP/bmecat:UDX.EDXF.DISCOUNT_GROUP_MANUFACTURER", nsmgr),
+                SupplierDiscountGroups = XmlUtils.nodesAsStrings(extensionNode, "./bmecat:UDX.EDXF.DISCOUNT_GROUP/bmecat:UDX.EDXF.DISCOUNT_GROUP_SUPPLIER", nsmgr),
+                ProductSeries = XmlUtils.nodesAsStrings(extensionNode, "./bmecat:UDX.EDXF.PRODUCT_SERIES", nsmgr)
+            };
+
+            foreach(XmlNode packagingUnitNode in extensionNode.SelectNodes("./bmecat:UDX.EDXF.PACKING_UNITS/bmecat:UDX.EDXF.PACKING_UNIT", nsmgr))
+            {
+                PackagingUnit pu = new PackagingUnit()
+                {
+                    QuantityMin = XmlUtils.nodeAsInt(packagingUnitNode, "./bmecat:UDX.EDXF.QUANTITY_MIN", nsmgr),
+                    QuantityMax = XmlUtils.nodeAsInt(packagingUnitNode, "./bmecat:UDX.EDXF.QUANTITY_MAX", nsmgr),
+                    PackagingUnitCode = XmlUtils.nodeAsString(packagingUnitNode, "./bmecat:UDX.EDXF.PACKING_UNIT_CODE", nsmgr),
+                    Weight = XmlUtils.nodeAsDecimal(packagingUnitNode, "./bmecat:UDX.EDXF.WEIGHT", nsmgr),
+                    Length = XmlUtils.nodeAsDecimal(packagingUnitNode, "./bmecat:UDX.EDXF.LENGTH", nsmgr),
+                    Width = XmlUtils.nodeAsDecimal(packagingUnitNode, "./bmecat:UDX.EDXF.WIDTH", nsmgr),
+                    Depth = XmlUtils.nodeAsDecimal(packagingUnitNode, "./bmecat:UDX.EDXF.DEPTH", nsmgr),
+                    GTIN = XmlUtils.nodeAsString(packagingUnitNode, "./bmecat:UDX.EDXF.GTIN", nsmgr)
+                };
+
+                retval.PackagingUnits.Add(pu);
+            }
+
+            foreach (XmlNode netWeightNode in extensionNode.SelectNodes("./bmecat:UDX.EDXF.PRODUCT_LOGISTIC_DETAILS/bmecat:UDX.EDXF.NETWEIGHT", nsmgr))
+            {
+                retval.ProductLogisticsDetails = new ProductLogisticsDetails()
+                {
+                    NetWeight = XmlUtils.nodeAsDecimal(netWeightNode, ".", nsmgr)
+                };                
+            }
+
+            foreach(XmlNode mimeNode in extensionNode.SelectNodes("./bmecat:UDX.EDXF.MIME_INFO/bmecat:UDX.EDXF.MIME", nsmgr))
+            {
+                retval.MimeInfos.Add(new MimeInfo()
+                {
+                    Source = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_SOURCE", nsmgr),
+                    Alt = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_ALT", nsmgr),
+                    Description = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_DESIGNATION", nsmgr)
+                });
+            }
+
+            retval.Reach = new Reach()
+            {
+                Info = XmlUtils.nodeAsString(extensionNode, "./bmecat:UDX.EDXF.REACH/bmecat:UDX.EDXF.REACH.INFO", nsmgr),
+                ListDate = XmlUtils.nodeAsDateTime(extensionNode, "./bmecat:UDX.EDXF.REACH/bmecat:UDX.EDXF.REACH.LISTDATE", nsmgr)
+            };
+
+            return retval;
+        } // !_readEDXF()
 
 
         private static Party _ReadPartyAddress(XmlNode addressNode, XmlNamespaceManager nsmgr)

@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+using BMECat.net.ETIM;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -53,6 +54,7 @@ namespace BMECat.net
         public string ERPGroupSupplier { get; set; }
         public string ERPGroupBuyer { get; set; }
         public List<Reference> References { get; set; } = new List<Reference>();
+        public EDXF EDXF { get; set; }
 
 
         public Feature GetProductFeature(string featureName, Feature defaultValue = null)

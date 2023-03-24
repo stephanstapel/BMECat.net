@@ -20,15 +20,10 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace BMECat.net
+namespace BMECat.net.ETIM
 {
-    public class MimeInfo
+    public class ProductLogisticsDetails
     {
-        public MimeTypes MimeType { get; set; }
-        public string Source { get; set; }
-        public string Description { get; set; }
-        public string Alt { get; set; }
-        public string Purpose { get; set; }
-        public int? Order { get; set; }
+        public decimal? NetWeight { get; set; }        
     }
 }

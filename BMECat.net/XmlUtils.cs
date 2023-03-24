@@ -203,6 +203,12 @@ namespace BMECat.net
                     return retval;
                 }
 
+                format = "yyyy-MM-dd";
+                if (DateTime.TryParseExact(temp, format, provider, DateTimeStyles.None, out retval))
+                {
+                    return retval;
+                }
+
                 return defaultValue;
             }
         } // !nodeAsDateTime()
