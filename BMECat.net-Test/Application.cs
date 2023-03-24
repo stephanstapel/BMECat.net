@@ -17,6 +17,7 @@
  * under the License.
  */
 using BMECat.net;
+using System.Collections.Generic;
 
 namespace BMECat.net_Test
 {
@@ -37,13 +38,19 @@ namespace BMECat.net_Test
             catalog.Products.Add(new Product()
             {
                 No = "Q20-P09",
-                EANCode = "0000000011",
-                Currency = CurrencyCodes.EUR,
-                NetPrice = 16.49m,
+                EANCode = "0000000011",                
                 DescriptionShort = "Post-Safe Polythene Envelopes Deutsch",
                 DescriptionLong = "Deutsch All-weather lightweight envelopes protect your contents and save you money. ALL - WEATHER.Once sealed, Post-Safe envelopes are completely waterproof.Your contents won't get damaged.",
-                Stock = 100,
-                VAT = 19
+                Stock = 100,                
+                Prices = new List<ProductPrice>()
+                {
+                    new ProductPrice()
+                    {
+                        Currency = CurrencyCodes.EUR,
+                        Amount = 16.49m,
+                        Tax = 0.19m
+                    }
+                }
             });
 
 
