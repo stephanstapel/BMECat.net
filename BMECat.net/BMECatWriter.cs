@@ -32,7 +32,7 @@ namespace BMECat.net
         private XmlTextWriter Writer { get; set; }
 
 
-        public void Save(ProductCatalog catalog, Stream stream)
+        public void Save(ProductCatalog catalog, Stream stream, BMECatExtensions extensions = null)
         {
             if (!stream.CanWrite || !stream.CanSeek)
             {
@@ -111,33 +111,30 @@ namespace BMECat.net
                 _writeOptionalElementString(Writer, "STOCK", String.Format("{0}", product.Stock));
                 Writer.WriteEndElement(); // !PRODUCT_DETAILS
 
-                Writer.WriteStartElement("PRODUCT_ORDER_DETAILS");
-                if (product.OrderUnit != QuantityCodes.Unknown)
+                if (product.OrderDetails != null)
                 {
-                    _writeOptionalElementString(Writer, "ORDER_UNIT", product.OrderUnit.EnumToString());
+                    Writer.WriteStartElement("PRODUCT_ORDER_DETAILS");
+                    _writeOptionalElementString(Writer, "ORDER_UNIT", product.OrderDetails.OrderUnit);
+                    _writeOptionalElementString(Writer, "CONTENT_UNIT", product.OrderDetails.ContentUnit);
+                    Writer.WriteEndElement(); // !PRODUCT_ORDER_DETAILS
                 }
-                if (product.ContentUnit != QuantityCodes.Unknown)
-                {
-                    _writeOptionalElementString(Writer, "CONTENT_UNIT", product.ContentUnit.EnumToString());
-                }
-                Writer.WriteEndElement(); // !PRODUCT_ORDER_DETAILS
 
-                Writer.WriteStartElement("PRODUCT_PRICE_DETAILS");
-                Writer.WriteStartElement("PRODUCT_PRICE");
-                Writer.WriteAttributeString("price_type", "net_list");
-                Writer.WriteElementString("PRICE_AMOUNT", _formatDecimal(product.NetPrice));
-                if (product.Currency != CurrencyCodes.Unknown)
+                if ((product.Prices != null) && (product.Prices.Count > 0))
                 {
-                    Writer.WriteElementString("PRICE_CURRENCY", product.Currency.EnumToString());
-                }
-                else
-                {
-                    Writer.WriteElementString("PRICE_CURRENCY", this.Catalog.Currency.EnumToString());
-                }
-                Writer.WriteElementString("TAX", _formatDecimal(1.0 * product.VAT / 100.0));
+                    Writer.WriteStartElement("PRODUCT_PRICE_DETAILS");
 
-                Writer.WriteEndElement(); // !PRODUCT_PRICE
-                Writer.WriteEndElement(); // !PRODUCT_PRICE_DETAILS
+                    foreach (ProductPrice price in product.Prices)
+                    {
+                        Writer.WriteStartElement("PRODUCT_PRICE");
+                        Writer.WriteAttributeString("price_type", price.PriceType.ToString());
+                        Writer.WriteElementString("PRICE_AMOUNT", price.Amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+                        Writer.WriteElementString("PRICE_CURRENCY", price.Currency.ToString());
+                        Writer.WriteElementString("TAX", price.Tax.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
+                        Writer.WriteElementString("LOWER_BOUND", price.Tax.ToString());
+                        Writer.WriteEndElement(); // !PRODUCT_PRICE
+                    }
+                    Writer.WriteEndElement(); // !PRODUCT_PRICE_DETAILS
+                }
 
                 Writer.WriteEndElement(); // !PRODUCT
             }
@@ -153,10 +150,10 @@ namespace BMECat.net
         } // !Save()
 
 
-        public void Save(ProductCatalog catalog, string filename)
+        public void Save(ProductCatalog catalog, string filename, BMECatExtensions extensions = null)
         {
             FileStream fs = new FileStream(filename, FileMode.Create, FileAccess.Write);
-            Save(catalog, fs);
+            Save(catalog, fs, extensions);
             fs.Flush();
             fs.Close();
         } // !Save()
@@ -226,6 +223,26 @@ namespace BMECat.net
             if (!String.IsNullOrEmpty(value))
             {
                 writer.WriteElementString(tagName, value);
+            }
+        } // !_writeOptionalElementString
+
+
+        private void _writeOptionalElementString(XmlTextWriter writer, string tagName, QuantityCode value, BMECatExtensions extensions = null)
+        {
+            if (value.ClearText != null)
+            {
+                writer.WriteElementString(tagName, value.ClearText);
+            }
+            else if (value.Code != QuantityCodes.Unknown)
+            {
+                if ((extensions != null) && (extensions.QuantityCodeConverter != null))
+                {
+                    writer.WriteElementString(tagName, extensions.QuantityCodeConverter.Convert(value.Code));
+                }
+                else
+                {
+                    writer.WriteElementString(tagName, value.Code.ToString());
+                }
             }
         } // !_writeOptionalElementString()
     }

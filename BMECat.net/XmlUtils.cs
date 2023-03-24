@@ -29,6 +29,27 @@ namespace BMECat.net
 {
     public class XmlUtils
     {
+        /// <summary>
+        ///  reads a certain attribute value
+        /// </summary>
+        public static string AttributeText(XmlNode node, string attributeName, string defaultText = "")
+        {
+            try
+            {
+                XmlAttribute attrib = node.Attributes[attributeName];
+                if (attrib != null)
+                {
+                    return attrib.Value;
+                }
+            }
+            catch
+            {
+            }
+
+            return defaultText;
+        } // !AttributeText()
+
+
         public static bool nodeAsBool(XmlNode node, string xpath, XmlNamespaceManager nsmgr = null, bool defaultValue = true)
         {
             if (node == null)
@@ -85,7 +106,36 @@ namespace BMECat.net
         } // nodeAsString()
 
 
-        public static int nodeAsInt(XmlNode node, string xpath, XmlNamespaceManager nsmgr = null, int defaultValue = 0)
+        public static List<string> nodesAsStrings(XmlNode node, string xpath, XmlNamespaceManager nsmgr = null, List<string> defaultValue = null)
+        {
+            if (node == null)
+            {
+                return defaultValue;
+            }
+
+            try
+            {
+                List<string> retval = new List<string>();
+                foreach(XmlNode _node in node.SelectNodes(xpath, nsmgr))
+                {
+                    retval.Add(_node.InnerText);
+                }
+                return retval;
+            }
+            catch (XPathException)
+            {
+                return defaultValue;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            };
+
+            return defaultValue;
+        } // nodesAsStrings()
+
+
+        public static int? nodeAsInt(XmlNode node, string xpath, XmlNamespaceManager nsmgr = null, int? defaultValue = null)
         {
             if (node == null)
             {
@@ -142,6 +192,12 @@ namespace BMECat.net
             {
                 string format = "yyyy-MM-ddThh:mm:sszzz";
                 CultureInfo provider = CultureInfo.InvariantCulture;
+                if (DateTime.TryParseExact(temp, format, provider, DateTimeStyles.None, out retval))
+                {
+                    return retval;
+                }
+
+                format = "yyyyMMdd";                
                 if (DateTime.TryParseExact(temp, format, provider, DateTimeStyles.None, out retval))
                 {
                     return retval;

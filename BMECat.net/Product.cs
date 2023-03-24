@@ -16,6 +16,10 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.InteropServices;
+
 namespace BMECat.net
 {
     public class Product
@@ -23,35 +27,37 @@ namespace BMECat.net
         public string No { get; set; }
         public string EANCode { get; set; }
         public string DescriptionShort { get; set; }
-        public string DescriptionLong { get; set; }
-        public decimal NetPrice { get; set; }
-        public CurrencyCodes Currency { get; set; }
-        public int Stock { get; set; }
-        public int VAT { get; set; }
+        public string DescriptionLong { get; set; }        
+        public int? Stock { get; set; }
 
-        /// <summary>
-        /// Bestelleinheit
-        /// 
-        /// Einheit, in der das Produkte bestellt werden kann; es können nur Vielfache dieser Einheit
-        /// bestellt werden.
-        /// Auf diese Einheit (oder auf Teile oder auf Vielfache davon) bezieht sich stets auch der
-        /// Preis.
-        /// Beispiel: Kiste Mineralwasser mit 6 Flaschen
-        /// Bestelleinheit: "Kiste", Inhaltseinheit/Einheit des Artikels: "Flasche"
-        /// Verpackungsmenge: "6"
-        /// </summary>
-        public QuantityCodes OrderUnit { get; set; }
-
-        /// <summary>
-        /// Inhaltseinheit
-        /// 
-        /// Einheit des Produktes innerhalb einer Bestelleinheit
-        /// </summary>
-        public QuantityCodes ContentUnit { get; set; }
+        public List<string> Keywords { get; set; } = new List<string>();
 
         public Product()
         {
-            this.Currency = CurrencyCodes.Unknown;
         }
+
+        /// <summary>
+        /// Description of the product by features and/or classification of the product
+        /// </summary>
+        public List<Feature> ProductFeatures { get; set; } = new List<Feature>();
+
+        public List<SupplierProductId> SupplierPIds { get; set; } = new List<SupplierProductId>();
+        public OrderDetails OrderDetails { get; set; }
+        public List<ProductPrice> Prices { get; set; } = new List<ProductPrice>();
+        public List<MimeInfo> MimeInfos { get; set; } = new List<MimeInfo>();
+        public LogisticsDetails LogisticsDetails { get; set; }
+        public string SupplierAltPid { get; set; }
+        public string ManufacturerPID { get; set; }
+        public string ManufacturerName { get; set; }
+        public string ManufacturerTypeDescription { get; set; }
+        public string ERPGroupSupplier { get; set; }
+        public string ERPGroupBuyer { get; set; }
+        public List<Reference> References { get; set; } = new List<Reference>();
+
+
+        public Feature GetProductFeature(string featureName, Feature defaultValue = null)
+        {
+            return this.ProductFeatures.FirstOrDefault(f => f.Name.Equals(featureName));
+        } // !GetProductFeatures()
     }
 }

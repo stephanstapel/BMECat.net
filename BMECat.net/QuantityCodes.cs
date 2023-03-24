@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace BMECat.net
 {
@@ -65,16 +66,32 @@ namespace BMECat.net
         Code_25,
         Code_26,
         Code_27,
+
+        /// <summary>
+        /// English: kilogram per square metre
+        /// </summary>
         Code_28,
         Code_29,
         Code_2A,
+
+        /// <summary>
+        /// English: radian per second squared
+        /// </summary>
         Code_2B,
         Code_2C,
         Code_2I,
         Code_2J,
         Code_2K,
         Code_2L,
+
+        /// <summary>
+        /// English: centimetre per second
+        /// </summary>
         Code_2M,
+
+        /// <summary>
+        /// English: decibel
+        /// </summary>
         Code_2N,
         Code_2P,
         Code_2Q,
@@ -82,6 +99,10 @@ namespace BMECat.net
         Code_2U,
         Code_2V,
         Code_2W,
+
+        /// <summary>
+        /// English: metre per minute
+        /// </summary>
         Code_2X,
         Code_2Y,
         Code_2Z,
@@ -112,8 +133,20 @@ namespace BMECat.net
         Code_4B,
         Code_4C,
         Code_4E,
+
+        /// <summary>
+        /// English: microlitre
+        /// </summary>
         Code_4G,
+
+        /// <summary>
+        /// English: micrometre (micron)
+        /// </summary>
         Code_4H,
+
+        /// <summary>
+        /// English: milliampere
+        /// </summary>
         Code_4K,
         Code_4L,
         Code_4M,
@@ -269,12 +302,21 @@ namespace BMECat.net
         A98,
 
         /// <summary>
+        /// English: bit
+        /// </summary>
+        A99,
+
+        /// <summary>
         /// English: Ball
         /// German: Knäuel
         /// </summary>
         AA,
         AB,
         ACR,
+
+        /// <summary>
+        /// byte
+        /// </summary>
         AD,
         AE,
         AH,
@@ -283,8 +325,20 @@ namespace BMECat.net
         AK,
         AL,
         AM,
+
+        /// <summary>
+        /// ampere hour
+        /// </summary>
         AMH,
+
+        /// <summary>
+        /// Ampere
+        /// </summary>
         AMP,
+
+        /// <summary>
+        /// English: year
+        /// </summary>
         ANN,
         AP,
         APZ,
@@ -311,6 +365,10 @@ namespace BMECat.net
         B18,
         B2,
         B20,
+
+        /// <summary>
+        /// English: kelvin per watt
+        /// </summary>
         B21,
         B22,
         B23,
@@ -338,6 +396,10 @@ namespace BMECat.net
         B44,
         B45,
         B46,
+
+        /// <summary>
+        /// English: kilonewton
+        /// </summary>
         B47,
         B48,
         B49,
@@ -376,6 +438,10 @@ namespace BMECat.net
         B8,
         B81,
         B83,
+
+        /// <summary>
+        /// English: microampere
+        /// </summary>
         B84,
         B85,
         B86,
@@ -391,6 +457,10 @@ namespace BMECat.net
         B95,
         B96,
         B97,
+
+        /// <summary>
+        /// English: microsecond
+        /// </summary>
         B98,
         B99,
         BAR,
@@ -429,6 +499,11 @@ namespace BMECat.net
         /// </summary>
         BO,
         BP,
+
+        /// <summary>
+        /// English: beats per minute
+        /// </summary>
+        BPM,
         BQL,
         BR,
         BT,
@@ -449,9 +524,17 @@ namespace BMECat.net
         C11,
         C12,
         C13,
+
+        /// <summary>
+        /// English: millihenry
+        /// </summary>
         C14,
         C15,
         C16,
+
+        /// <summary>
+        /// Enlish: millimetre squared per second
+        /// </summary>
         C17,
         C18,
         C19,
@@ -461,6 +544,10 @@ namespace BMECat.net
         C23,
         C24,
         C25,
+
+        /// <summary>
+        /// English: millisecond
+        /// </summary>
         C26,
         C27,
         C28,
@@ -477,10 +564,18 @@ namespace BMECat.net
         C39,
         C4,
         C40,
+
+        /// <summary>
+        /// English: nanofarad
+        /// </summary>
         C41,
         C42,
         C43,
         C44,
+
+        /// <summary>
+        /// English: nanometre
+        /// </summary>
         C45,
         C46,
         C47,
@@ -493,6 +588,10 @@ namespace BMECat.net
         C53,
         C54,
         C55,
+
+        /// <summary>
+        /// newton per square millimetre
+        /// </summary>
         C56,
         C57,
         C58,
@@ -579,6 +678,10 @@ namespace BMECat.net
         CLF,
         CLT,
         CMK,
+
+        /// <summary>
+        /// English: cubic centimetre
+        /// </summary>
         CMQ,
 
         /// <summary>
@@ -648,12 +751,20 @@ namespace BMECat.net
         D43,
         D44,
         D45,
+
+        /// <summary>
+        /// English: volt - ampere
+        /// </summary>
         D46,
         D47,
         D48,
         D49,
         D5,
         D50,
+
+        /// <summary>
+        /// English: volt per millimetre
+        /// </summary>
         D51,
         D52,
         D53,
@@ -724,6 +835,10 @@ namespace BMECat.net
         DAY,
         DB,
         DC,
+
+        /// <summary>
+        /// English: degree [unit of angle]
+        /// </summary>
         DD,
         DE,
         DEC,
@@ -737,6 +852,10 @@ namespace BMECat.net
         DJ,
         DLT,
         DMK,
+
+        /// <summary>
+        /// English: cubic decimetre
+        /// </summary>
         DMQ,
         DMT,
         DN,
@@ -774,6 +893,22 @@ namespace BMECat.net
         E3,
         E4,
         E5,
+        E20,
+
+        /// <summary>
+        /// English: litre per hour
+        /// </summary>
+        E32,
+
+        /// <summary>
+        /// English: pixel
+        /// </summary>
+        E37,
+
+        /// <summary>
+        /// English: kilogram per hour
+        /// </summary>
+        E93,
 
         /// <summary>
         /// English: Each
@@ -787,6 +922,27 @@ namespace BMECat.net
         EV,
         F1,
         F9,
+
+        /// <summary>
+        /// English: kilogram square millimetre
+        /// </summary>
+        F19,
+        F76,
+
+        /// <summary>
+        /// English: inch of mercury
+        /// </summary>
+        F79,
+
+        /// <summary>
+        /// English: newton centimetre
+        /// </summary>
+        F88,
+
+        /// <summary>
+        /// English: newton metre per ampere
+        /// </summary>
+        F90,
         FAH,
         FAR,
         FB,
@@ -808,6 +964,26 @@ namespace BMECat.net
         G3,
         G7,
         GB,
+
+        /// <summary>
+        /// English: cubic centimetre per hour
+        /// </summary>
+        G48,
+
+        /// <summary>
+        /// English: litre per second
+        /// </summary>
+        G51,
+
+        /// <summary>
+        /// English: millimetre to the fourth power
+        /// </summary>
+        G77,
+
+        /// <summary>
+        /// English: litre per second bar
+        /// </summary>
+        G85,
         GBQ,
         GC,
         GD,
@@ -827,8 +1003,16 @@ namespace BMECat.net
         GM,
         GN,
         GO,
+
+        /// <summary>
+        /// English: milligram per cubic metre
+        /// </summary>
         GP,
         GQ,
+
+        /// <summary>
+        /// English: Gram
+        /// </summary>
         GRM,
 
         /// <summary>
@@ -846,6 +1030,21 @@ namespace BMECat.net
         GZ,
         H1,
         H2,
+
+        /// <summary>
+        /// English: percent per kelvin
+        /// </summary>
+        H25,
+
+        /// <summary>
+        /// millivolt per minute
+        /// </summary>
+        H62,
+
+        /// <summary>
+        /// English: percent per bar
+        /// </summary>
+        H96,
         HA,
 
         /// <summary>
@@ -878,7 +1077,8 @@ namespace BMECat.net
         HT,
         HTZ,
         /// <summary>
-        /// Stunde
+        /// English: Hour
+        /// German: Stunde
         /// Abkürzung: Std.
         /// </summary>
         HUR,
@@ -898,12 +1098,21 @@ namespace BMECat.net
         IU,
         IV,
         J2,
+
+        /// <summary>
+        /// English: watt second
+        /// </summary>
+        J55,
         JB,
         JE,
         JG,
         JK,
         JM,
         JO,
+
+        /// <summary>
+        /// Joule
+        /// </summary>
         JOU,
 
         /// <summary>
@@ -934,10 +1143,23 @@ namespace BMECat.net
         KI,
         KJ,
         KJO,
+
+        /// <summary>
+        /// English: kilogram per metre
+        /// </summary>
         KL,
+
+        /// <summary>
+        /// English: kilometre per hour
+        /// </summary>
         KMH,
         KMK,
         KMQ,
+
+        /// <summary>
+        /// English: kilometre
+        /// </summary>
+        KMT,
         KNI,
         KNS,
         KNT,
@@ -966,6 +1188,10 @@ namespace BMECat.net
         KUR,
         KVA,
         KVR,
+
+        /// <summary>
+        /// kilovolt
+        /// </summary>
         KVT,
         KW,
 
@@ -977,6 +1203,11 @@ namespace BMECat.net
         KWT,
         KX,
         L2,
+
+        /// <summary>
+        /// English: psi per psi
+        /// </summary>
+        L52,
         LA,
         LBR,
         LBT,
@@ -1008,6 +1239,10 @@ namespace BMECat.net
         /// German: Liter
         /// </summary>
         LTR,
+
+        /// <summary>
+        /// English: lumen
+        /// </summary>
         LUM,
         LUX,
         LX,
@@ -1018,6 +1253,16 @@ namespace BMECat.net
         M5,
         M7,
         M9,
+
+        /// <summary>
+        /// English: revolution per minute
+        /// </summary>
+        M46,
+
+        /// <summary>
+        /// English: newton metre per radian
+        /// </summary>
+        M93,
         MA,
         MAL,
         MAM,
@@ -1030,12 +1275,17 @@ namespace BMECat.net
         MD,
         MF,
         MGM,
+
+        /// <summary>
+        /// English: megahertz
+        /// </summary>
         MHZ,
         MIK,
         MIL,
 
         /// <summary>
-        /// Minute
+        /// English: minute [unit of time]
+        /// German: Minute
         /// Abkürzung: min
         /// </summary>
         MIN,
@@ -1067,6 +1317,10 @@ namespace BMECat.net
         MQ,
         MQH,
         MQS,
+
+        /// <summary>
+        /// English: metre per second squared
+        /// </summary>
         MSK,
         MT,
 
@@ -1087,6 +1341,10 @@ namespace BMECat.net
         /// German: Meter
         /// </summary>
         MTR,
+
+        /// <summary>
+        /// English: metre per second
+        /// </summary>
         MTS,
         MV,
         MVA,
@@ -1107,6 +1365,10 @@ namespace BMECat.net
         NCL,
         ND,
         NE,
+
+        /// <summary>
+        /// English: Newton
+        /// </summary>
         NEW,
         NF,
         NG,
@@ -1152,7 +1414,8 @@ namespace BMECat.net
         P0,
 
         /// <summary>
-        /// Prozent
+        /// English: Percent
+        /// German: Prozent
         /// Abkürzung: %
         /// </summary>
         P1,
@@ -1261,6 +1524,10 @@ namespace BMECat.net
         /// </summary>
         RO,
         RP,
+
+        /// <summary>
+        /// English: revolutions per minute
+        /// </summary>
         RPM,
         RPS,
         RS,
@@ -1283,6 +1550,10 @@ namespace BMECat.net
         SCR,
         SD,
         SE,
+
+        /// <summary>
+        /// English: second [unit of time]
+        /// </summary>
         SEC,
 
         /// <summary>
@@ -1375,6 +1646,10 @@ namespace BMECat.net
         UM,
         VA,
         VI,
+
+        /// <summary>
+        /// English: Volt
+        /// </summary>
         VLT,
         VQ,
         VS,
@@ -1398,6 +1673,10 @@ namespace BMECat.net
         WM,
         WR,
         WSD,
+
+        /// <summary>
+        /// Watt
+        /// </summary>
         WTT,
         WW,
         X1,
@@ -1425,11 +1704,33 @@ namespace BMECat.net
 
     public static class QuantityCodesExtensions
     {
+        /// <summary>
+        /// As the performance of parsing enums with a large enum value set is really slow, we create
+        /// a helper dictionary to speed up the lookup
+        /// </summary>
+        private static Dictionary<string, QuantityCodes> _Mapping = null;
+        private static ReaderWriterLockSlim _Lock = new ReaderWriterLockSlim();
+
+
         public static QuantityCodes FromString(this QuantityCodes _c, string s)
         {
+            _Lock.EnterWriteLock();
+            if (_Mapping == null)
+            {                
+                _fillMapping();                
+            }
+            _Lock.ExitWriteLock();
+
             try
             {
-                return (QuantityCodes)Enum.Parse(typeof(QuantityCodes), s);
+                _Lock.EnterReadLock();
+                QuantityCodes retval = QuantityCodes.Unknown;
+                if (_Mapping.ContainsKey(s))
+                {
+                    retval = _Mapping[s];
+                }                
+                _Lock.ExitReadLock();
+                return retval;
             }
             catch
             {
@@ -1442,5 +1743,15 @@ namespace BMECat.net
         {
             return c.ToString("g");
         } // !ToString()
+
+
+        private static void _fillMapping()
+        {
+            _Mapping = new Dictionary<string, QuantityCodes>();
+            foreach(QuantityCodes code in Enum.GetValues(typeof(QuantityCodes)))
+            {
+                _Mapping.Add(code.ToString(), code);
+            }
+        } // !_fillMapping()
     }
 }

@@ -16,29 +16,16 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace BMECat.net
 {
-    public class Party
+    public class Agreement
     {
         public string Id { get; set; }
-        public string Name { get; set; }
-        public string ContactName { get; set; }
-
-        public List<ContactDetails> ContactDetails { get; set; } = new List<ContactDetails>();
-        public string Name2 { get; internal set; }
-        public string Name3 { get; internal set; }
-        public string Street { get; internal set; }
-        public string Zip { get; internal set; }
-        public string BoxNo { get; internal set; }
-        public string ZipBox { get; internal set; }
-        public string City { get; internal set; }
-        public string State { get; internal set; }
-        public string Country { get; internal set; }
-        public string VATID { get; internal set; }
-        public string Phone { get; internal set; }
-        public string Fax { get; internal set; }
-        public string Department { get; internal set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 }

@@ -63,6 +63,10 @@ namespace BMECat.net
         public TransportConditions Transport { get; set; }
         public List<Product> Products { get; set; }
         public CurrencyCodes Currency { get; set; }
+        public Agreement Agreement { get; set; }
+        public List<CatalogStructure> CatalogStructures { get; set; } = new List<CatalogStructure>();
+
+
 
         public ProductCatalog()
         {
@@ -78,29 +82,29 @@ namespace BMECat.net
         /// This allows easy further processing of the stream.
         /// </summary>
         /// <param name="stream"></param>
-        public void Save(Stream stream)
+        public void Save(Stream stream, BMECatExtensions extensions = null)
         {
             BMECatWriter writer = new BMECatWriter();
-            writer.Save(this, stream);
+            writer.Save(this, stream, extensions);
         } // !Save()
 
 
-        public void Save(string filename)
+        public void Save(string filename, BMECatExtensions extensions = null)
         {
             BMECatWriter writer = new BMECatWriter();
-            writer.Save(this, filename);
+            writer.Save(this, filename, extensions);
         } // !Save()
 
 
-        public static ProductCatalog Load(Stream stream)
+        public static ProductCatalog Load(Stream stream, BMECatExtensions extensions = null)
         {
-            return BMECatReader.Load(stream);
+            return BMECatReader.Load(stream, extensions);
         } // !Load()
 
 
-        public static ProductCatalog Load(string filename)
+        public static ProductCatalog Load(string filename, BMECatExtensions extensions = null)
         {
-            return BMECatReader.Load(filename);
+            return BMECatReader.Load(filename, extensions);
         } // !Load()
     }
 }
