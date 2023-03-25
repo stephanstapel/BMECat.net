@@ -24,6 +24,7 @@ namespace BMECat.net.ETIM
 {
     public class ProductLogisticsDetails
     {
-        public decimal? NetWeight { get; set; }        
+        public decimal? NetWeight { get; set; }
+        public string RegionOfOrigin { get; set; }
     }
 }

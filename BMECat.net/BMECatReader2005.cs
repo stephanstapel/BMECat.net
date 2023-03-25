@@ -337,11 +337,33 @@ namespace BMECat.net
                 if (extensionNode.InnerXml.Contains(".EDXF."))
                 {
                     product.EDXF = _readEDXF(extensionNode, nsmgr);
-                }                
+                }
+
+                product.ExtendedInformation = _readExtendedInformation(extensionNode, nsmgr);
             }
 
             return product;
         } // !_ReadProduct()
+
+
+        private static List<Tuple<string,string>> _readExtendedInformation(XmlNode extensionNode, XmlNamespaceManager nsmgr)
+        {
+            List<Tuple<string, string>> retval = new List<Tuple<string, string>>();
+            foreach (XmlNode node in extensionNode.ChildNodes)
+            {
+                if (node.Name.Contains(".EDXF"))
+                {
+                    continue;
+                }
+
+                string key = node.Name.Replace("UDX.", "");
+                string value = node.InnerText;
+
+                retval.Add(new Tuple<string, string>(key, value));
+            }
+
+            return retval;
+        } // !_readExtendedInformation()
 
 
         private static EDXF _readEDXF(XmlNode extensionNode, XmlNamespaceManager nsmgr)
@@ -351,7 +373,8 @@ namespace BMECat.net
                 ManufacturerAcronym = XmlUtils.nodeAsString(extensionNode, "./bmecat:UDX.EDXF.MANUFACTURER_ACRONYM", nsmgr),
                 ManufacturerDiscountGroups = XmlUtils.nodesAsStrings(extensionNode, "./bmecat:UDX.EDXF.DISCOUNT_GROUP/bmecat:UDX.EDXF.DISCOUNT_GROUP_MANUFACTURER", nsmgr),
                 SupplierDiscountGroups = XmlUtils.nodesAsStrings(extensionNode, "./bmecat:UDX.EDXF.DISCOUNT_GROUP/bmecat:UDX.EDXF.DISCOUNT_GROUP_SUPPLIER", nsmgr),
-                ProductSeries = XmlUtils.nodesAsStrings(extensionNode, "./bmecat:UDX.EDXF.PRODUCT_SERIES", nsmgr)
+                ProductSeries = XmlUtils.nodesAsStrings(extensionNode, "./bmecat:UDX.EDXF.PRODUCT_SERIES", nsmgr),
+                ValidFrom = XmlUtils.nodeAsDateTime(extensionNode, "./bmecat:UDX.EDXF.VALID_FROM", nsmgr)
             };
 
             foreach(XmlNode packagingUnitNode in extensionNode.SelectNodes("./bmecat:UDX.EDXF.PACKING_UNITS/bmecat:UDX.EDXF.PACKING_UNIT", nsmgr))
@@ -371,11 +394,13 @@ namespace BMECat.net
                 retval.PackagingUnits.Add(pu);
             }
 
-            foreach (XmlNode netWeightNode in extensionNode.SelectNodes("./bmecat:UDX.EDXF.PRODUCT_LOGISTIC_DETAILS/bmecat:UDX.EDXF.NETWEIGHT", nsmgr))
+            XmlNode productLogisticsDetailsNode = extensionNode.SelectSingleNode("./bmecat:UDX.EDXF.PRODUCT_LOGISTIC_DETAILS", nsmgr);
+            if (productLogisticsDetailsNode != null)
             {
                 retval.ProductLogisticsDetails = new ProductLogisticsDetails()
                 {
-                    NetWeight = XmlUtils.nodeAsDecimal(netWeightNode, ".", nsmgr)
+                    NetWeight = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./bmecat:UDX.EDXF.NETWEIGHT", nsmgr),
+                    RegionOfOrigin = XmlUtils.nodeAsString(productLogisticsDetailsNode, "./bmecat:REGION_OF_ORIGIN", nsmgr)
                 };                
             }
 

@@ -25,6 +25,7 @@ namespace BMECat.net.ETIM
     public class EDXF
     {
         public string ManufacturerAcronym { get; set; }
+        public DateTime? ValidFrom { get; set; }
         public List<string> ManufacturerDiscountGroups { get; set; } = new List<string>();
         public List<string> SupplierDiscountGroups { get; set; } = new List<string>();
         public List<string> ProductSeries { get; set; } = new List<string>();

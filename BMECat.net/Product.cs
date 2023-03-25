@@ -17,6 +17,7 @@
  * under the License.
  */
 using BMECat.net.ETIM;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -55,6 +56,7 @@ namespace BMECat.net
         public string ERPGroupBuyer { get; set; }
         public List<Reference> References { get; set; } = new List<Reference>();
         public EDXF EDXF { get; set; }
+        public List<Tuple<string, string>> ExtendedInformation { get; set; } = new List<Tuple<string, string>>();
 
 
         public Feature GetProductFeature(string featureName, Feature defaultValue = null)
