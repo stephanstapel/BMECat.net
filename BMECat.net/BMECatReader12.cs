@@ -22,6 +22,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
@@ -97,12 +98,15 @@ namespace BMECat.net
                 retval.Supplier.Name = XmlUtils.nodeAsString(supplierNode, "./SUPPLIER_NAME", nsmgr);
             }
 
+            Mutex mutex = new Mutex();
             XmlNodeList productNodes = doc.DocumentElement.SelectNodes("/BMECAT/T_NEW_CATALOG/ARTICLE", nsmgr);
             Parallel.ForEach(productNodes.Cast<XmlNode>(), /* new ParallelOptions() {  MaxDegreeOfParallelism = 1 }, */
                              (XmlNode productNode) =>
             {
                 Product product = _ReadProduct(productNode, nsmgr, extensions);
+                mutex.WaitOne();
                 retval.Products.Add(product);
+                mutex.ReleaseMutex();
             });
 
             XmlNodeList catalogNodes = doc.DocumentElement.SelectNodes("/BMECAT/T_NEW_CATALOG/CATALOG_GROUP_SYSTEM/CATALOG_STRUCTURE", nsmgr);
@@ -110,7 +114,9 @@ namespace BMECat.net
                              (XmlNode catalogNode) =>
             {
                 CatalogStructure catalogStructure = _ReadCatalogStructure(catalogNode, nsmgr);
+                mutex.WaitOne();
                 retval.CatalogStructures.Add(catalogStructure);
+                mutex.ReleaseMutex();
             });
 
             return retval;
