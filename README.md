@@ -1,7 +1,8 @@
 # BMECat.net
 [![NuGet](https://img.shields.io/nuget/v/BMECat.net?color=blue)](https://www.nuget.org/packages/BMECat.net/)
 
-BMECat.net is a .net open source library that allows you to read and write BMEcat descriptions would be a software component that provides developers with a set of tools and functionalities to manipulate BMEcat files programmatically. This library would enable software applications to easily integrate BMEcat support, allowing for the efficient exchange of product information between different systems and partners. Developers could use this library to parse, create, and modify BMEcat documents, accessing product data in a standardized and structured way. Overall, this library simplifies the development of software applications that rely on BMEcat for product information exchange.
+BMECat.net is a .net open source library that allows you to read and write BMEcat descriptions would be a software component that provides developers with a set of tools and functionalities to manipulate BMEcat files programmatically. This library would enable software applications to easily integrate BMEcat support, allowing for the efficient exchange of product information between different systems and partners. Our aim is to support real world BMECat files which often do not match the standard 100%.
+Developers could use this library to parse, create, and modify BMEcat documents, accessing product data in a standardized and structured way. Overall, this library simplifies the development of software applications that rely on BMEcat for product information exchange.
 
 The library supports both version 1.2 and 2005. Support for extended data structures (like product features, address details) is for reading only so far. If you need to create BMECat files with extended data structures, drop me a message.
 
@@ -76,6 +77,14 @@ catalog.Save("test.xml");
 ```
 
 That's it.
+
+# Real world BMECat files
+
+BMECat in the wild is not always what the designers thought it should be. The library currently supports:
+
+* Missing xml namespace information on <BMECAT> root node (BMECat 2005)
+* Using of buyer and supplier elements instead of parties (BMECat 2005)
+* Handling of different quantity codes via BMECatExtension class (all versions)
 
 # Building on your own
 
