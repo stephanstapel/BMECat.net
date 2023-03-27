@@ -31,8 +31,16 @@ namespace BMECat.net
 {
     internal class BMECatReader12 : BMECatReaderBase
     {
-        internal static ProductCatalog Load(XmlDocument doc, BMECatExtensions extensions = null)
-        {   
+        internal static ProductCatalog Load(Stream inputStream, BMECatExtensions extensions = null)
+        {
+            if (inputStream == null)
+            {
+                return null;
+            }
+
+            XmlDocument doc = new XmlDocument();
+            doc.Load(inputStream);
+
             XmlNamespaceManager nsmgr = new XmlNamespaceManager(doc.DocumentElement.OwnerDocument.NameTable);
             nsmgr.AddNamespace("xsi", "http://www.bmecat.org/bmecat/1.2/bmecat_new_catalog");
 
@@ -157,7 +165,7 @@ namespace BMECat.net
 
             Product product = new Product()
             {
-                No = XmlUtils.nodeAsString(productNode, "./SUPPLIER_PID", nsmgr),
+                No = XmlUtils.nodeAsString(productNode, "./SUPPLIER_AID", nsmgr),
                 DescriptionShort = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/DESCRIPTION_SHORT", nsmgr),
                 DescriptionLong = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/DESCRIPTION_LONG", nsmgr),
                 EANCode = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/EAN", nsmgr),

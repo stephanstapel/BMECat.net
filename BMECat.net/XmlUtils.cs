@@ -81,7 +81,7 @@ namespace BMECat.net
             if (node == null)
             {
                 return defaultValue;
-            }
+            }            
 
             try
             {
@@ -212,5 +212,18 @@ namespace BMECat.net
                 return defaultValue;
             }
         } // !nodeAsDateTime()
+
+
+
+        public static XmlNodeList SelectNodes(XmlNode node, string xpath, XmlNamespaceManager nsmgr = null)
+        {
+            return node.SelectNodes(xpath, nsmgr);
+        } // !SelectNodes()
+
+
+        public static XmlNode SelectSingleNode(XmlNode node, string xpath, XmlNamespaceManager nsmgr = null)
+        {
+            return node.SelectSingleNode(xpath, nsmgr);
+        } // !SelectNodes()
     }
 }

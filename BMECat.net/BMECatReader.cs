@@ -21,9 +21,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.XPath;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace BMECat.net
 {
@@ -36,14 +38,28 @@ namespace BMECat.net
                 throw new IllegalStreamException("Cannot read from stream");
             }
 
-            XmlDocument doc = new XmlDocument();
-            doc.Load(stream);            
+            // quickly retrieve the document version
+            BMECatVersion version = BMECatVersion.Version12;
 
-            string version = doc.DocumentElement.GetAttribute("version");
+            byte[] buffer = new byte[1024];
+            stream.Read(buffer, 0, 1024);
+            stream.Position = 0;
+
+            string xmlHeading = System.Text.Encoding.UTF8.GetString(buffer);
+            Regex regex = new Regex("<BMECAT[^>]+version=\"([^\"]+)\"");
+            Match match = regex.Match(xmlHeading);
+            if (match.Success && match.Groups.Count > 1)
+            {
+                if (match.Groups[1].Value.Contains("2005"))
+                {
+                    version = BMECatVersion.Version2005;
+                }
+            }
+            
             switch (version)
             {
-                case "2005": return BMECatReader2005.Load(doc, extensions);
-                case "1.2": return BMECatReader12.Load(doc, extensions);
+                case BMECatVersion.Version2005: return BMECatReader2005.Load(stream, extensions);
+                case BMECatVersion.Version12: return BMECatReader12.Load(stream, extensions);
                 default: throw new Exception($"Version {version} is currently not supported");
             }
         } // !Load()

@@ -1567,7 +1567,7 @@ namespace BMECat.net
     }
 
 
-    internal static class CountryCodesExtensions
+    public static class CountryCodesExtensions
     {
         /// <summary>
         /// As the performance of parsing enums with a large enum value set is really slow, we create
