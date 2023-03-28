@@ -169,16 +169,26 @@ namespace BMECat.net
             {
                 No = XmlUtils.nodeAsString(productNode, "./SUPPLIER_AID", nsmgr),
                 DescriptionShort = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/DESCRIPTION_SHORT", nsmgr),
-                DescriptionLong = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/DESCRIPTION_LONG", nsmgr),
-                EANCode = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/EAN", nsmgr),
+                DescriptionLong = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/DESCRIPTION_LONG", nsmgr),                
                 Stock = XmlUtils.nodeAsInt(productNode, "./ARTICLE_DETAILS/STOCK", nsmgr),                                
                 SupplierAltPid = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/SUPPLIER_ALT_AID", nsmgr),
                 ManufacturerPID = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_AID", nsmgr),
                 ManufacturerName = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_NAME", nsmgr),
                 ManufacturerTypeDescription = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_TYPE_DESCR", nsmgr),
                 ERPGroupSupplier = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/ERP_GROUP_SUPPLIER", nsmgr),
-                ERPGroupBuyer = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/ERP_GROUP_BUYER", nsmgr),                
+                ERPGroupBuyer = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/ERP_GROUP_BUYER", nsmgr),
             };
+
+            string eanCode = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/EAN", nsmgr);
+            if (!String.IsNullOrEmpty(eanCode))
+            {
+                product.PIds.Add(new ProductId()
+                {
+                    Type = ProductIdTypes.EAN,
+                    Id = eanCode,
+                });
+            }
+            
 
             /*
              * @TODO 
@@ -188,9 +198,9 @@ namespace BMECat.net
 
             foreach (XmlNode supplierPIdNode in productNode.SelectNodes("./SUPPLIER_AID", nsmgr))
             {
-                product.SupplierPIds.Add(new SupplierProductId()
+                product.SupplierPIds.Add(new ProductId()
                 {
-                    Type = default(SupplierProductIdTypes).FromString(XmlUtils.AttributeText(supplierPIdNode, "type")),
+                    Type = default(ProductIdTypes).FromString(XmlUtils.AttributeText(supplierPIdNode, "type")),
                     Id = supplierPIdNode.InnerText
                 });
             }

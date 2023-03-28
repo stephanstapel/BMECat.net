@@ -265,10 +265,8 @@ namespace BMECat.net
             {
                 No = XmlUtils.nodeAsString(productNode, "./bmecat:SUPPLIER_PID", nsmgr),
                 DescriptionShort = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:DESCRIPTION_SHORT", nsmgr),
-                DescriptionLong = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:DESCRIPTION_LONG", nsmgr),
-                EANCode = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:EAN", nsmgr),
-                Stock = XmlUtils.nodeAsInt(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:STOCK", nsmgr),
-                SupplierAltPid = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/SUPPLIER_ALT_PID", nsmgr),
+                DescriptionLong = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:DESCRIPTION_LONG", nsmgr),                
+                Stock = XmlUtils.nodeAsInt(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:STOCK", nsmgr),                
                 ManufacturerPID = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_PID", nsmgr),
                 ManufacturerName = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_NAME", nsmgr),
                 ManufacturerTypeDescription = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_TYPE_DESCR", nsmgr),
@@ -276,11 +274,43 @@ namespace BMECat.net
                 ERPGroupBuyer = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/ERP_GROUP_BUYER", nsmgr),
             };
 
+            // take care of proper EAN/ GTIN processing            
+            string eanCode = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:EAN", nsmgr);
+            if (!String.IsNullOrEmpty(eanCode))
+            {
+                product.PIds.Add(new ProductId()
+                {
+                    Type = ProductIdTypes.EAN,
+                    Id = eanCode
+                });
+            }
+
+            string supplierAltPid = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/SUPPLIER_ALT_PID", nsmgr);
+            if (!String.IsNullOrEmpty(supplierAltPid))
+            {
+                product.PIds.Add(new ProductId()
+                {
+                    Type = ProductIdTypes.SupplierSpecific,
+                    Id = supplierAltPid
+                });
+            }
+
+            XmlNode internationalPidNode = XmlUtils.SelectSingleNode(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:INTERNATIONAL_PID", nsmgr);
+            if (internationalPidNode != null)
+            {
+                product.PIds.Add(new ProductId()
+                {
+                    Type = default(ProductIdTypes).FromString(XmlUtils.AttributeText(internationalPidNode, "type")),
+                    Id = internationalPidNode.InnerText
+                });
+            }
+            
+            // Read supplier PIDs
             foreach (XmlNode supplierPIdNode in XmlUtils.SelectNodes(productNode, "./bmecat:SUPPLIER_PID", nsmgr))
             {
-                product.SupplierPIds.Add(new SupplierProductId()
+                product.SupplierPIds.Add(new ProductId()
                 {
-                    Type = default(SupplierProductIdTypes).FromString(XmlUtils.AttributeText(supplierPIdNode, "type")),
+                    Type = default(ProductIdTypes).FromString(XmlUtils.AttributeText(supplierPIdNode, "type")),
                     Id = supplierPIdNode.InnerText
                 });
             }
@@ -361,7 +391,7 @@ namespace BMECat.net
                 product.References.Add(new Reference()
                 {
                     Type = default(ReferenceTypes).FromString(XmlUtils.AttributeText(referenceNode, "type")),
-                    IdTo = XmlUtils.nodeAsString(referenceNode, "./PROD_ID_TO", nsmgr)
+                    IdTo = XmlUtils.nodeAsString(referenceNode, "./bmecat:PROD_ID_TO", nsmgr)
                 });
             }
 

@@ -27,7 +27,7 @@ namespace BMECat.net
     public class Product
     {
         public string No { get; set; }
-        public string EANCode { get; set; }
+        public List<ProductId> PIds { get; set; } = new List<ProductId>();
         public string DescriptionShort { get; set; }
         public string DescriptionLong { get; set; }        
         public int? Stock { get; set; }
@@ -43,7 +43,7 @@ namespace BMECat.net
         /// </summary>
         public List<Feature> ProductFeatures { get; set; } = new List<Feature>();
 
-        public List<SupplierProductId> SupplierPIds { get; set; } = new List<SupplierProductId>();
+        public List<ProductId> SupplierPIds { get; set; } = new List<ProductId>();
         public OrderDetails OrderDetails { get; set; }
         public List<ProductPrice> Prices { get; set; } = new List<ProductPrice>();
         public List<MimeInfo> MimeInfos { get; set; } = new List<MimeInfo>();

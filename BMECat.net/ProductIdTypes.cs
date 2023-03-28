@@ -31,7 +31,7 @@ namespace BMECat.net
     /// Some target systems are not able to accept all 32 characters (e.g., SAP max. 18 characters). It is therefore 
     /// advisable to keep product identifications as short as possible
     /// </summary>
-    public enum SupplierProductIdTypes
+    public enum ProductIdTypes
     {
         /// <summary> Artikelnummer des einkaufenden Unternehmen </summary>
         BuyerSpecific,
@@ -55,33 +55,33 @@ namespace BMECat.net
     }
 
     
-    internal static class SupplierProductIdTypesExtensions
+    internal static class ProductIdTypesExtensions
     {
-        public static SupplierProductIdTypes FromString(this SupplierProductIdTypes _, string s)
+        public static ProductIdTypes FromString(this ProductIdTypes _, string s)
         {
             s = s.ToLower().Trim();
             switch (s)
             {
-                case "buyer_specific": return SupplierProductIdTypes.BuyerSpecific;
-                case "ean": return SupplierProductIdTypes.EAN;
-                case "gtin": return SupplierProductIdTypes.GTIN;
-                case "supplier_specific": return SupplierProductIdTypes.SupplierSpecific;
-                case "upc": return SupplierProductIdTypes.UPC;
+                case "buyer_specific": return ProductIdTypes.BuyerSpecific;
+                case "ean": return ProductIdTypes.EAN;
+                case "gtin": return ProductIdTypes.GTIN;
+                case "supplier_specific": return ProductIdTypes.SupplierSpecific;
+                case "upc": return ProductIdTypes.UPC;
 
-                default: return SupplierProductIdTypes.Unknown;
+                default: return ProductIdTypes.Unknown;
             }
         } // !FromString()
 
 
-        public static string EnumToString(this SupplierProductIdTypes c)
+        public static string EnumToString(this ProductIdTypes c)
         {
             switch (c)
             {
-                case SupplierProductIdTypes.BuyerSpecific: return "buyer_specific";
-                case SupplierProductIdTypes.EAN: return "ean";
-                case SupplierProductIdTypes.GTIN: return "gtin";
-                case SupplierProductIdTypes.SupplierSpecific: return "supplier_specific";
-                case SupplierProductIdTypes.UPC: return "upc";
+                case ProductIdTypes.BuyerSpecific: return "buyer_specific";
+                case ProductIdTypes.EAN: return "ean";
+                case ProductIdTypes.GTIN: return "gtin";
+                case ProductIdTypes.SupplierSpecific: return "supplier_specific";
+                case ProductIdTypes.UPC: return "upc";
 
                 default: return "";
             }

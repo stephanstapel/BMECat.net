@@ -107,7 +107,17 @@ namespace BMECat.net
                 Writer.WriteStartElement("PRODUCT_DETAILS");
                 _writeOptionalElementString(Writer, "DESCRIPTION_SHORT", product.DescriptionShort);
                 _writeOptionalElementString(Writer, "DESCRIPTION_LONG", product.DescriptionLong);
-                _writeOptionalElementString(Writer, "EAN", product.EANCode);
+
+                foreach(ProductId id in product.PIds)
+                {
+                    _writeOptionalElementString(Writer, "INTERNATIONAL_PID", id.Id, new Dictionary<string, string>() { { "type", id.Type.ToString() } });
+                }
+
+                if (product.PIds.FirstOrDefault(p => p.Type.Equals(ProductIdTypes.EAN)) != null)
+                {
+                    
+                }
+                
                 _writeOptionalElementString(Writer, "STOCK", String.Format("{0}", product.Stock));
                 Writer.WriteEndElement(); // !PRODUCT_DETAILS
 
@@ -220,11 +230,20 @@ namespace BMECat.net
         } // !_formatDecimal()
 
 
-        private void _writeOptionalElementString(XmlTextWriter writer, string tagName, string value)
+        private void _writeOptionalElementString(XmlTextWriter writer, string tagName, string value, Dictionary<string, string> attributes = null)
         {
             if (!String.IsNullOrEmpty(value))
             {
-                writer.WriteElementString(tagName, value);
+                writer.WriteStartElement(tagName);
+                if (attributes != null)
+                {
+                    foreach(KeyValuePair<string, string> attr in attributes)
+                    {
+                        writer.WriteAttributeString(attr.Key, attr.Value);
+                    }
+                }
+                writer.WriteValue(value);
+                writer.WriteEndElement();                
             }
         } // !_writeOptionalElementString
 
