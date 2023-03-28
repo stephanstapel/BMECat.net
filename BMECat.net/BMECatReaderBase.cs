@@ -16,10 +16,13 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+using System.IO;
+using System.Threading.Tasks;
+
 namespace BMECat.net
 {
     internal class BMECatReaderBase
-    {
+    {        
         protected static QuantityCode _convertQuantityCode(string input, BMECatExtensions extensions)
         {
             if (input == null)

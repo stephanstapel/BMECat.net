@@ -31,7 +31,7 @@ namespace BMECat.net
 {
     internal class BMECatReader12 : BMECatReaderBase
     {
-        internal static ProductCatalog Load(Stream inputStream, BMECatExtensions extensions = null)
+        internal async static Task<ProductCatalog> LoadAsync(Stream inputStream, BMECatExtensions extensions = null)
         {
             if (inputStream == null)
             {
@@ -75,7 +75,7 @@ namespace BMECat.net
                 XmlNode addressNode = doc.SelectSingleNode("./ADDRESS", nsmgr);
                 if (addressNode != null)
                 {
-                    retval.Buyer = _ReadPartyAddress(addressNode, nsmgr);                    
+                    retval.Buyer = await _ReadPartyAddressAsync(addressNode, nsmgr);                    
                 }
                 else
                 {
@@ -94,7 +94,7 @@ namespace BMECat.net
                 XmlNode addressNode = doc.SelectSingleNode("./ADDRESS", nsmgr);
                 if (addressNode != null)
                 {
-                    retval.Supplier = _ReadPartyAddress(addressNode, nsmgr);
+                    retval.Supplier = await _ReadPartyAddressAsync(addressNode, nsmgr);
                 }
                 else
                 {
@@ -109,9 +109,9 @@ namespace BMECat.net
             Mutex mutex = new Mutex();
             XmlNodeList productNodes = doc.DocumentElement.SelectNodes("/BMECAT/T_NEW_CATALOG/ARTICLE", nsmgr);
             Parallel.ForEach(productNodes.Cast<XmlNode>(), /* new ParallelOptions() {  MaxDegreeOfParallelism = 1 }, */
-                             (XmlNode productNode) =>
+                             async (XmlNode productNode) =>
             {
-                Product product = _ReadProduct(productNode, nsmgr, extensions);
+                Product product = await _ReadProductAsync(productNode, nsmgr, extensions);
                 mutex.WaitOne();
                 retval.Products.Add(product);
                 mutex.ReleaseMutex();
@@ -119,19 +119,19 @@ namespace BMECat.net
 
             XmlNodeList catalogNodes = doc.DocumentElement.SelectNodes("/BMECAT/T_NEW_CATALOG/CATALOG_GROUP_SYSTEM/CATALOG_STRUCTURE", nsmgr);
             Parallel.ForEach(catalogNodes.Cast<XmlNode>(), /* new ParallelOptions() {  MaxDegreeOfParallelism = 1 }, */
-                             (XmlNode catalogNode) =>
+                             async (XmlNode catalogNode) =>
             {
-                CatalogStructure catalogStructure = _ReadCatalogStructure(catalogNode, nsmgr);
+                CatalogStructure catalogStructure = await _ReadCatalogStructureAsync(catalogNode, nsmgr);
                 mutex.WaitOne();
                 retval.CatalogStructures.Add(catalogStructure);
                 mutex.ReleaseMutex();
             });
 
             return retval;
-        } // !Load()
+        } // !LoadAsync()
 
 
-        private static CatalogStructure _ReadCatalogStructure(XmlNode catalogNode, XmlNamespaceManager nsmgr)
+        private async static Task<CatalogStructure> _ReadCatalogStructureAsync(XmlNode catalogNode, XmlNamespaceManager nsmgr)
         {
             CatalogStructure catalogStructure = new CatalogStructure()
             {
@@ -155,11 +155,13 @@ namespace BMECat.net
                 });
             }
 
+            await Task.CompletedTask;
+
             return catalogStructure;
-        } // !_ReadCatalogStructure()
+        } // !_ReadCatalogStructureAsync()
 
 
-        private static Product _ReadProduct(XmlNode productNode, XmlNamespaceManager nsmgr, BMECatExtensions extensions = null)
+        private async static Task<Product> _ReadProductAsync(XmlNode productNode, XmlNamespaceManager nsmgr, BMECatExtensions extensions = null)
         {
             string _productMode = XmlUtils.nodeAsString(productNode, "@mode", nsmgr);
 
@@ -184,7 +186,7 @@ namespace BMECat.net
                 <SPECIAL_TREATMENT_CLASS type="UN">3481</SPECIAL_TREATMENT_CLASS>
              */
 
-            foreach (XmlNode supplierPIdNode in productNode.SelectNodes("./SUPPLIER_PID", nsmgr))
+            foreach (XmlNode supplierPIdNode in productNode.SelectNodes("./SUPPLIER_AID", nsmgr))
             {
                 product.SupplierPIds.Add(new SupplierProductId()
                 {
@@ -272,11 +274,13 @@ namespace BMECat.net
                 });
             }
 
+            await Task.CompletedTask;
+
             return product;
-        } // !_ReadProduct()
+        } // !_ReadProductAsync()
 
 
-        private static Party _ReadPartyAddress(XmlNode addressNode, XmlNamespaceManager nsmgr)
+        private async static Task<Party> _ReadPartyAddressAsync(XmlNode addressNode, XmlNamespaceManager nsmgr)
         {
             Party p = new Party()
             {
@@ -314,7 +318,9 @@ namespace BMECat.net
                 });
             }
 
+            await Task.CompletedTask;
+
             return p;
-        } // !_ReadyPartyAddress()
+        } // !_ReadyPartyAddressAsync()
     }
 }

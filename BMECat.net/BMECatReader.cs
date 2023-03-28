@@ -20,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -32,6 +33,21 @@ namespace BMECat.net
     internal class BMECatReader
     {
         public static ProductCatalog Load(Stream stream, BMECatExtensions extensions = null)
+        {
+            Task<ProductCatalog> t = LoadAsync(stream, extensions);
+            t.Wait();
+            return t.Result;
+        } // !Load()
+
+        public static ProductCatalog Load(string filename, BMECatExtensions extensions = null)
+        {
+            Task<ProductCatalog> t = LoadAsync(filename, extensions);
+            t.Wait();
+            return t.Result;
+        } // !Load()
+
+
+        public async static Task<ProductCatalog> LoadAsync(Stream stream, BMECatExtensions extensions = null)
         {
             if (!stream.CanRead)
             {
@@ -58,21 +74,21 @@ namespace BMECat.net
             
             switch (version)
             {
-                case BMECatVersion.Version2005: return BMECatReader2005.Load(stream, extensions);
-                case BMECatVersion.Version12: return BMECatReader12.Load(stream, extensions);
+                case BMECatVersion.Version2005: return await BMECatReader2005.LoadAsync(stream, extensions);
+                case BMECatVersion.Version12: return await BMECatReader12.LoadAsync(stream, extensions);
                 default: throw new Exception($"Version {version} is currently not supported");
             }
-        } // !Load()
+        } // !LoadAsync()
 
 
-        public static ProductCatalog Load(string filename, BMECatExtensions extensions = null)
+        public static Task<ProductCatalog> LoadAsync(string filename, BMECatExtensions extensions = null)
         {
             if (!System.IO.File.Exists(filename))
             {
                 throw new FileNotFoundException();
             }
 
-            return Load(new FileStream(filename, FileMode.Open, FileAccess.Read), extensions);
-        } // !Load()
+            return LoadAsync(new FileStream(filename, FileMode.Open, FileAccess.Read), extensions);
+        } // !LoadAsync()
     }
 }

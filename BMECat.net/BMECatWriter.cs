@@ -49,7 +49,7 @@ namespace BMECat.net
             #region XML-Kopfbereich
             Writer.WriteStartElement("BMECAT");
             Writer.WriteAttributeString("version", "2005");
-            Writer.WriteAttributeString("xmlns", "xsi", null, "http://www.bmecat.org/bmecat/2005fd");
+            Writer.WriteAttributeString("xmlns", "http://www.bmecat.org/bmecat/2005fd");
             #endregion // !XML-Kopfbereich
 
             #region Header

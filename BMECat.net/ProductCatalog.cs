@@ -19,6 +19,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices.ComTypes;
+using System.Threading.Tasks;
 
 namespace BMECat.net
 {
@@ -96,15 +98,31 @@ namespace BMECat.net
         } // !Save()
 
 
+        public async static Task<ProductCatalog> LoadAsync(Stream stream, BMECatExtensions extensions = null)
+        {
+            return await BMECatReader.LoadAsync(stream, extensions);
+        } // !Load()
+
+
+        public async static Task<ProductCatalog> LoadAsync(string filename, BMECatExtensions extensions = null)
+        {
+            return await BMECatReader.LoadAsync(filename, extensions);
+        } // !Load()
+
+
         public static ProductCatalog Load(Stream stream, BMECatExtensions extensions = null)
         {
-            return BMECatReader.Load(stream, extensions);
+            Task<ProductCatalog> t = LoadAsync(stream, extensions);
+            t.Wait();
+            return t.Result;
         } // !Load()
 
 
         public static ProductCatalog Load(string filename, BMECatExtensions extensions = null)
         {
-            return BMECatReader.Load(filename, extensions);
+            Task<ProductCatalog> t = LoadAsync(filename, extensions);
+            t.Wait();
+            return t.Result;
         } // !Load()
     }
 }

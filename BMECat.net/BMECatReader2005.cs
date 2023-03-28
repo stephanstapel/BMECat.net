@@ -31,7 +31,7 @@ namespace BMECat.net
 {
     internal class BMECatReader2005 : BMECatReaderBase
     {
-        internal static ProductCatalog Load(Stream inputStream, BMECatExtensions extensions = null)
+        internal async static Task<ProductCatalog> LoadAsync(Stream inputStream, BMECatExtensions extensions = null)
         {
             if (inputStream == null)
             {
