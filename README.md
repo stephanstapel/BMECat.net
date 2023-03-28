@@ -23,6 +23,19 @@ https://www.nuget.org/packages/BMECat.net/
 
 # Usage
 
+Loading existing catalogue file is possible in both synchronous and asynchronous way. Synchronously, it works like this:
+
+```C#
+ProductCatalog catalog = ProductCatalog.Load("test.xml");
+```
+
+while asynchronously, loading works like this:
+
+
+```C#
+ProductCatalog catalog = await ProductCatalog.LoadAsync("test.xml");
+```
+
 Creation of catalogue files is simple:
 ```C#
 ProductCatalog catalog = new ProductCatalog()
@@ -69,11 +82,18 @@ catalog.Products.Add(new Product()
 }
 ```
 
-and finally save the catalogue either to stream or to file:
+and finally save the catalogue either to stream or to file. This is possible in synchronous and asynchronous way. Synchronously works like this:
 
 
 ```C#
 catalog.Save("test.xml");
+```
+
+and asynchronously, it works like this:
+
+
+```C#
+await catalog.SaveAsync("test.xml");
 ```
 
 That's it.
