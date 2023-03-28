@@ -36,7 +36,10 @@ while asynchronously, loading works like this:
 ProductCatalog catalog = await ProductCatalog.LoadAsync("test.xml");
 ```
 
-Creation of catalogue files is simple:
+The library automatically detects if the BMECat file is written in 1.2 format or 2005 standard or a mixture (see below for details about non-standard formats).
+
+If you should want to create a product catalog based on your own data and export it into BMECat, use this code:
+
 ```C#
 ProductCatalog catalog = new ProductCatalog()
 {
@@ -96,7 +99,8 @@ and asynchronously, it works like this:
 await catalog.SaveAsync("test.xml");
 ```
 
-That's it.
+The standard export format is BMECat 2005. If you should want to export legacy BMECat 1.2 as well, please drop me a message or issue a pull request. I'm more than happy to provide feedback and merge it.
+
 
 # Real world BMECat files
 
