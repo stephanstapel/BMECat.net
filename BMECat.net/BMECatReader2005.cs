@@ -226,6 +226,8 @@ namespace BMECat.net
                                  mutex.ReleaseMutex();
                              });
 
+            Task.WaitAll();
+
             return retval;
         } // !Load()
 
@@ -265,8 +267,8 @@ namespace BMECat.net
             {
                 No = XmlUtils.nodeAsString(productNode, "./bmecat:SUPPLIER_PID", nsmgr),
                 DescriptionShort = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:DESCRIPTION_SHORT", nsmgr),
-                DescriptionLong = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:DESCRIPTION_LONG", nsmgr),                
-                Stock = XmlUtils.nodeAsInt(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:STOCK", nsmgr),                
+                DescriptionLong = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:DESCRIPTION_LONG", nsmgr),
+                Stock = XmlUtils.nodeAsInt(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:STOCK", nsmgr),
                 ManufacturerPID = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_PID", nsmgr),
                 ManufacturerName = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_NAME", nsmgr),
                 ManufacturerTypeDescription = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_TYPE_DESCR", nsmgr),
@@ -295,8 +297,7 @@ namespace BMECat.net
                 });
             }
 
-            XmlNode internationalPidNode = XmlUtils.SelectSingleNode(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:INTERNATIONAL_PID", nsmgr);
-            if (internationalPidNode != null)
+            foreach (XmlNode internationalPidNode in XmlUtils.SelectNodes(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:INTERNATIONAL_PID", nsmgr))
             {
                 product.PIds.Add(new ProductId()
                 {

@@ -110,7 +110,7 @@ namespace BMECat.net
 
                 foreach(ProductId id in product.PIds)
                 {
-                    _writeOptionalElementString(Writer, "INTERNATIONAL_PID", id.Id, new Dictionary<string, string>() { { "type", id.Type.ToString() } });
+                    _writeOptionalElementString(Writer, "INTERNATIONAL_PID", id.Id, new Dictionary<string, string>() { { "type", id.Type.EnumToString() } });
                 }
 
                 if (product.PIds.FirstOrDefault(p => p.Type.Equals(ProductIdTypes.EAN)) != null)

@@ -87,7 +87,6 @@ namespace BMECat.net_Test
 
             MemoryStream ms = new MemoryStream();
             catalog.Save(ms);
-            catalog.Save("e:\\output.xml");
 
             ms.Position = 0;
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
@@ -111,7 +110,6 @@ namespace BMECat.net_Test
 
             MemoryStream ms = new MemoryStream();
             catalog.Save(ms);
-            catalog.Save("e:\\output.xml");
 
             ms.Position = 0;
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
@@ -160,10 +158,11 @@ namespace BMECat.net_Test
 
             MemoryStream ms = new MemoryStream();
             catalog.Save(ms);
+            catalog.Save("e:\\output.xml");
 
             ms.Position = 0;
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds.Count, 2);
+            Assert.AreEqual(2, loadedCatalog.Products.First().PIds.Count);
             Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Type, ProductIdTypes.EAN);
             Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, _id0);
             Assert.AreEqual(loadedCatalog.Products.First().PIds[1].Type, ProductIdTypes.GTIN);
