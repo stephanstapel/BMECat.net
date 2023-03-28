@@ -32,7 +32,7 @@ namespace BMECat.net
         private XmlTextWriter Writer { get; set; }
 
 
-        public void Save(ProductCatalog catalog, Stream stream, BMECatExtensions extensions = null)
+        public async Task SaveAsync(ProductCatalog catalog, Stream stream, BMECatExtensions extensions = null)
         {
             if (!stream.CanWrite || !stream.CanSeek)
             {
@@ -147,16 +147,18 @@ namespace BMECat.net
             Writer.Flush();
 
             stream.Seek(streamPosition, SeekOrigin.Begin);
-        } // !Save()
+
+            await Task.CompletedTask;
+        } // !SaveAsync()
 
 
-        public void Save(ProductCatalog catalog, string filename, BMECatExtensions extensions = null)
+        public async Task SaveAsync(ProductCatalog catalog, string filename, BMECatExtensions extensions = null)
         {
             FileStream fs = new FileStream(filename, FileMode.Create, FileAccess.Write);
-            Save(catalog, fs, extensions);
+            await SaveAsync(catalog, fs, extensions);
             fs.Flush();
             fs.Close();
-        } // !Save()
+        } // !SaveAsync()
 
 
         private void _writeTransport(XmlTextWriter writer, TransportConditions transportCondition)

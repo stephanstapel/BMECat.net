@@ -84,17 +84,17 @@ namespace BMECat.net
         /// This allows easy further processing of the stream.
         /// </summary>
         /// <param name="stream"></param>
-        public void Save(Stream stream, BMECatExtensions extensions = null)
+        public async Task SaveAsync(Stream stream, BMECatExtensions extensions = null)
         {
             BMECatWriter writer = new BMECatWriter();
-            writer.Save(this, stream, extensions);
+            await writer.SaveAsync(this, stream, extensions);
         } // !Save()
 
 
-        public void Save(string filename, BMECatExtensions extensions = null)
+        public async Task SaveAsync(string filename, BMECatExtensions extensions = null)
         {
             BMECatWriter writer = new BMECatWriter();
-            writer.Save(this, filename, extensions);
+            await writer.SaveAsync(this, filename, extensions);
         } // !Save()
 
 
@@ -124,5 +124,26 @@ namespace BMECat.net
             t.Wait();
             return t.Result;
         } // !Load()
+
+
+        /// <summary>
+        /// Saves the descriptor object into a stream.
+        /// 
+        /// The stream position will be reset to the original position after writing is finished.
+        /// This allows easy further processing of the stream.
+        /// </summary>
+        /// <param name="stream"></param>
+        public void Save(Stream stream, BMECatExtensions extensions = null)
+        {            
+            Task t = SaveAsync(stream, extensions);
+            t.Wait();
+        } // !Save()
+
+
+        public void Save(string filename, BMECatExtensions extensions = null)
+        {            
+            Task t = SaveAsync(filename, extensions);
+            t.Wait();
+        } // !Save()
     }
 }
