@@ -1,4 +1,5 @@
 using BMECat.net;
+using System.Text;
 using System.Text.Json;
 
 namespace BMECat.net_Test
@@ -15,7 +16,7 @@ namespace BMECat.net_Test
         
 
         [TestMethod]
-        public async Task SynchronousAsynchronousComparisonTest()
+        public async Task SynchronousAsynchronousLoadingTest()
         {
             ProductCatalog catalog = _GenerateSimpleCatalog();
             MemoryStream ms = new MemoryStream();
@@ -33,7 +34,27 @@ namespace BMECat.net_Test
             Assert.AreEqual(synchronouslyLoadedCatalogJson, asynchronouslyLoadedCatalogJson);
 
             Task.WaitAll();
-        } // !SynchronousAsynchronousTest()
+        } // !SynchronousAsynchronousLoadingTest()
+
+
+        [TestMethod]
+        public async Task SynchronousAsynchronousSavingTest()
+        {
+            ProductCatalog catalog = _GenerateSimpleCatalog();
+
+
+            MemoryStream msSynchronous = new MemoryStream();
+            catalog.Save(msSynchronous);
+            string  synchronousProductCatalog = System.Text.Encoding.UTF8.GetString(msSynchronous.ToArray());
+
+            MemoryStream msAsynchronous = new MemoryStream();
+            await catalog.SaveAsync(msAsynchronous);
+            string asynchronousProductCatalog = System.Text.Encoding.UTF8.GetString(msAsynchronous.ToArray());
+            
+            Assert.AreEqual(synchronousProductCatalog, asynchronousProductCatalog);
+
+            Task.WaitAll();
+        } // !SynchronousAsynchronousLoadingTest()
 
 
         private ProductCatalog _GenerateSimpleCatalog()
