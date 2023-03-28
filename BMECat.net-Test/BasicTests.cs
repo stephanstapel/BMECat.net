@@ -18,8 +18,6 @@ namespace BMECat.net_Test
         public async Task SynchronousAsynchronousComparisonTest()
         {
             ProductCatalog catalog = _GenerateSimpleCatalog();
-            catalog.Save("e:\\output.xml");
-
             MemoryStream ms = new MemoryStream();
             catalog.Save(ms);
 
