@@ -158,7 +158,6 @@ namespace BMECat.net_Test
 
             MemoryStream ms = new MemoryStream();
             catalog.Save(ms);
-            catalog.Save("e:\\output.xml");
 
             ms.Position = 0;
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
