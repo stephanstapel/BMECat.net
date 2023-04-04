@@ -30,5 +30,7 @@ namespace BMECat.net
         public string Alt { get; set; }
         public string Purpose { get; set; }
         public int? Order { get; set; }
+        public string Code { get; set; }
+        public string Filename { get; set; }
     }
 }

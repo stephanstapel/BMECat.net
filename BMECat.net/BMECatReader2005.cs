@@ -479,7 +479,9 @@ namespace BMECat.net
                 {
                     Source = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_SOURCE", nsmgr),
                     Alt = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_ALT", nsmgr),
-                    Description = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_DESIGNATION", nsmgr)
+                    Description = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_DESIGNATION", nsmgr),
+                    Filename = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_FILENAME", nsmgr),
+                    Code = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_CODE", nsmgr),
                 });
             }
 
