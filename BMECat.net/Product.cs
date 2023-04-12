@@ -38,6 +38,8 @@ namespace BMECat.net
         {
         }
 
+        public FeatureClassificationSystem FeatureClassificationSystem { get; set; }
+
         /// <summary>
         /// Description of the product by features and/or classification of the product
         /// </summary>

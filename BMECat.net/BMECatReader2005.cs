@@ -321,6 +321,31 @@ namespace BMECat.net
                 product.Keywords.Add(keywordNode.InnerText);
             }
 
+            // parse classification
+            XmlNode classificationNode = productNode.SelectSingleNode("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_SYSTEM_NAME", nsmgr);
+            if (classificationNode != null)
+            {
+                if (product.FeatureClassificationSystem == null) { product.FeatureClassificationSystem = new FeatureClassificationSystem(); }
+                product.FeatureClassificationSystem.Classification = classificationNode.InnerText;
+            }
+
+            XmlNode classifictionGroupName = productNode.SelectSingleNode("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_GROUP_NAME", nsmgr);
+            if (classifictionGroupName != null)
+            {
+                if (product.FeatureClassificationSystem == null) { product.FeatureClassificationSystem = new FeatureClassificationSystem(); }
+                product.FeatureClassificationSystem.GroupName = classifictionGroupName.InnerText;
+            }
+
+            foreach (XmlNode classifictionGroupId in productNode.SelectNodes("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_GROUP_ID", nsmgr))
+            {
+                if (product.FeatureClassificationSystem == null) { product.FeatureClassificationSystem = new FeatureClassificationSystem(); }
+                product.FeatureClassificationSystem.GroupIds.Add(new FeatureClassificationSystemGroupId()
+                {
+                    Name = classifictionGroupId.InnerText
+                });
+            }
+
+            // parse features
             foreach (XmlNode featureNode in XmlUtils.SelectNodes(productNode, "./bmecat:PRODUCT_FEATURES/bmecat:FEATURE", nsmgr))
             {
                 product.ProductFeatures.Add(new Feature()

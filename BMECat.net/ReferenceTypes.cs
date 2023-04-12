@@ -47,6 +47,7 @@ namespace BMECat.net
             {
                 case "sparepart": return ReferenceTypes.SparePart;
                 case "others": return ReferenceTypes.Others;
+                case "accessory": return ReferenceTypes.Accessories;
                 case "accessories": return ReferenceTypes.Accessories;
                 case "consists_of": return ReferenceTypes.ConsistsOf;
                 case "similar": return ReferenceTypes.Similar;

@@ -64,5 +64,6 @@ namespace BMECat.net
         /// Definition of the feature
         /// </summary>
         public string Template { get; set; }
+        public string Reference { get; set; }
     }
 }
