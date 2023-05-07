@@ -25,9 +25,31 @@ namespace BMECat.net
     public enum PriceTypes
     {
         Unknown = 0,
+
+        /// <summary>
+        /// (Einkaufs-)Listenpreis ohne Umsatzsteuer
+        /// </summary>
         NetList,
+
+        /// <summary>
+        /// Kundenspezifischer Endpreis ohne Umsatzsteuer
+        /// </summary>
         NetCustomer,
-        NRP
+
+        /// <summary>
+        /// unverbindliche (Verkaufs-)Preisempfehlung (nonbinding recommended price)
+        /// </summary>
+        NRP,
+
+        /// <summary>
+        /// (Einkaufs-)Listenpreis inklusive Umsatzsteuer
+        /// </summary>
+        GrosList,
+
+        /// <summary>
+        /// kundenspezifischer Endpreis ohne Umsatzsteuer bei Expresslieferung
+        /// </summary>
+        NetCustomerExpress
     }
 
 
@@ -42,6 +64,8 @@ namespace BMECat.net
                 case "net_list": return PriceTypes.NetList;
                 case "net_customer": return PriceTypes.NetCustomer;
                 case "nrp": return PriceTypes.NRP;
+                case "gros_list": return PriceTypes.GrosList;
+                case "net_customer_exp": return PriceTypes.NetCustomerExpress;
 
                 default: return PriceTypes.Unknown;
             }
@@ -55,6 +79,8 @@ namespace BMECat.net
                 case PriceTypes.NetList: return "net_list";
                 case PriceTypes.NetCustomer: return "net_customer";
                 case PriceTypes.NRP: return "nrp";
+                case PriceTypes.GrosList: return "gros_list";
+                case PriceTypes.NetCustomerExpress: return "net_customer_exp";
 
                 default: return "";
             }
