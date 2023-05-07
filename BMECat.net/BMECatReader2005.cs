@@ -276,17 +276,7 @@ namespace BMECat.net
                 ERPGroupBuyer = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/ERP_GROUP_BUYER", nsmgr),
             };
 
-            // take care of proper EAN/ GTIN processing            
-            string eanCode = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:EAN", nsmgr);
-            if (!String.IsNullOrEmpty(eanCode))
-            {
-                product.PIds.Add(new ProductId()
-                {
-                    Type = ProductIdTypes.EAN,
-                    Id = eanCode
-                });
-            }
-
+            // take care of proper EAN/ GTIN processing                        
             string supplierAltPid = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/SUPPLIER_ALT_PID", nsmgr);
             if (!String.IsNullOrEmpty(supplierAltPid))
             {
@@ -305,7 +295,21 @@ namespace BMECat.net
                     Id = internationalPidNode.InnerText
                 });
             }
-            
+
+            string eanCode = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:EAN", nsmgr);
+            if (!String.IsNullOrEmpty(eanCode))
+            {
+                ProductId eanProductId = product.PIds.FirstOrDefault(p => p.Type == ProductIdTypes.EAN);
+                if ((eanProductId == null) || (eanProductId.Id != eanCode))
+                {
+                    product.PIds.Add(new ProductId()
+                    {
+                        Type = ProductIdTypes.EAN,
+                        Id = eanCode
+                    });
+                }
+            }
+
             // Read supplier PIDs
             foreach (XmlNode supplierPIdNode in XmlUtils.SelectNodes(productNode, "./bmecat:SUPPLIER_PID", nsmgr))
             {
