@@ -666,6 +666,12 @@ namespace BMECat.net
         /// German: Container
         /// </summary>
         CH,
+
+        /// <summary>
+        /// English: jerrycan
+        /// German: Kanister
+        /// </summary>
+        CI,
         CJ,
         CK,
         CKG,
