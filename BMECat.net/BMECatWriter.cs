@@ -113,9 +113,12 @@ namespace BMECat.net
                     _writeOptionalElementString(Writer, "INTERNATIONAL_PID", id.Id, new Dictionary<string, string>() { { "type", id.Type.EnumToString() } });
                 }
 
-                if (product.PIds.FirstOrDefault(p => p.Type.Equals(ProductIdTypes.EAN)) != null)
+
+                /// deprecate: this element will be removed soon according to the BMECat 200 documentation
+                ProductId eanPId = product.PIds.FirstOrDefault(p => p.Type.Equals(ProductIdTypes.EAN));
+                if (eanPId != null)
                 {
-                    
+                    _writeOptionalElementString(Writer, "EAN", eanPId.Id);
                 }
                 
                 _writeOptionalElementString(Writer, "STOCK", String.Format("{0}", product.Stock));
