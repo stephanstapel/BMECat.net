@@ -136,7 +136,7 @@ namespace BMECat.net
                     foreach (ProductPrice price in product.Prices)
                     {
                         Writer.WriteStartElement("PRODUCT_PRICE");
-                        Writer.WriteAttributeString("price_type", price.PriceType.ToString());
+                        Writer.WriteAttributeString("price_type", price.PriceType.EnumToString());
                         Writer.WriteElementString("PRICE_AMOUNT", price.Amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
                         Writer.WriteElementString("PRICE_CURRENCY", price.Currency.ToString());
                         Writer.WriteElementString("TAX", price.Tax.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
