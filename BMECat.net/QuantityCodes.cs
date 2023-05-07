@@ -1716,7 +1716,7 @@ namespace BMECat.net
         {
             _Lock.EnterWriteLock();
             if (_Mapping == null)
-            {                
+            {             
                 _fillMapping();                
             }
             _Lock.ExitWriteLock();
@@ -1729,12 +1729,15 @@ namespace BMECat.net
                 {
                     retval = _Mapping[s];
                 }                
-                _Lock.ExitReadLock();
                 return retval;
             }
             catch
             {
                 return QuantityCodes.Unknown;
+            }
+            finally
+            {
+                _Lock.ExitReadLock();
             }
         } // !FromString()
 
