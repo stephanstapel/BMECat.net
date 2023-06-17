@@ -5,7 +5,7 @@
     <Authors>Stephan Stapel, stephan@s2-industries.com</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/stephanstapel/BMECat.net</PackageProjectUrl>	
-    <Version>3.2.0</Version>
+    <Version>4.0.0</Version>
     <Copyright>Stephan Stapel, s2 industries, 2023</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/stephanstapel/BMECat.net</RepositoryUrl>
