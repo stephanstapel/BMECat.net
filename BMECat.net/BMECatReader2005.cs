@@ -326,25 +326,25 @@ namespace BMECat.net
             }
 
             // parse features including classification
-            foreach (XmlNode articleFeaturesNode in productNode.SelectNodes("./bmecat:PRODUCT_FEATURES", nsmgr))
+            foreach (XmlNode productFeaturesNode in productNode.SelectNodes("./bmecat:PRODUCT_FEATURES", nsmgr))
             {
                 FeatureSet featureSet = new FeatureSet();
 
-                XmlNode classificationNode = articleFeaturesNode.SelectSingleNode("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_SYSTEM_NAME", nsmgr);
+                XmlNode classificationNode = productFeaturesNode.SelectSingleNode("./bmecat:REFERENCE_FEATURE_SYSTEM_NAME", nsmgr);
                 if (classificationNode != null)
                 {
                     if (featureSet.FeatureClassificationSystem == null) { featureSet.FeatureClassificationSystem = new FeatureClassificationSystem(); }
                     featureSet.FeatureClassificationSystem.Classification = classificationNode.InnerText;
                 }
 
-                XmlNode classifictionGroupName = articleFeaturesNode.SelectSingleNode("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_GROUP_NAME", nsmgr);
+                XmlNode classifictionGroupName = productFeaturesNode.SelectSingleNode("./bmecat:REFERENCE_FEATURE_GROUP_NAME", nsmgr);
                 if (classifictionGroupName != null)
                 {
                     if (featureSet.FeatureClassificationSystem == null) { featureSet.FeatureClassificationSystem = new FeatureClassificationSystem(); }
                     featureSet.FeatureClassificationSystem.GroupName = classifictionGroupName.InnerText;
                 }
 
-                foreach (XmlNode classifictionGroupId in articleFeaturesNode.SelectNodes("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_GROUP_ID", nsmgr))
+                foreach (XmlNode classifictionGroupId in productFeaturesNode.SelectNodes("./bmecat:REFERENCE_FEATURE_GROUP_ID", nsmgr))
                 {
                     if (featureSet.FeatureClassificationSystem == null) { featureSet.FeatureClassificationSystem = new FeatureClassificationSystem(); }
                     featureSet.FeatureClassificationSystem.GroupIds.Add(new FeatureClassificationSystemGroupId()
@@ -354,7 +354,7 @@ namespace BMECat.net
                 }
 
                 // parse features
-                foreach (XmlNode featureNode in XmlUtils.SelectNodes(articleFeaturesNode, "./bmecat:PRODUCT_FEATURES/bmecat:FEATURE", nsmgr))
+                foreach (XmlNode featureNode in XmlUtils.SelectNodes(productFeaturesNode, "./bmecat:FEATURE", nsmgr))
                 {
                     featureSet.Features.Add(new Feature()
                     {
