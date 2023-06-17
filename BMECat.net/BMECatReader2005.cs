@@ -325,41 +325,48 @@ namespace BMECat.net
                 product.Keywords.Add(keywordNode.InnerText);
             }
 
-            // parse classification
-            XmlNode classificationNode = productNode.SelectSingleNode("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_SYSTEM_NAME", nsmgr);
-            if (classificationNode != null)
+            // parse features including classification
+            foreach (XmlNode articleFeaturesNode in productNode.SelectNodes("./bmecat:PRODUCT_FEATURES", nsmgr))
             {
-                if (product.FeatureClassificationSystem == null) { product.FeatureClassificationSystem = new FeatureClassificationSystem(); }
-                product.FeatureClassificationSystem.Classification = classificationNode.InnerText;
-            }
+                FeatureSet featureSet = new FeatureSet();
 
-            XmlNode classifictionGroupName = productNode.SelectSingleNode("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_GROUP_NAME", nsmgr);
-            if (classifictionGroupName != null)
-            {
-                if (product.FeatureClassificationSystem == null) { product.FeatureClassificationSystem = new FeatureClassificationSystem(); }
-                product.FeatureClassificationSystem.GroupName = classifictionGroupName.InnerText;
-            }
-
-            foreach (XmlNode classifictionGroupId in productNode.SelectNodes("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_GROUP_ID", nsmgr))
-            {
-                if (product.FeatureClassificationSystem == null) { product.FeatureClassificationSystem = new FeatureClassificationSystem(); }
-                product.FeatureClassificationSystem.GroupIds.Add(new FeatureClassificationSystemGroupId()
+                XmlNode classificationNode = articleFeaturesNode.SelectSingleNode("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_SYSTEM_NAME", nsmgr);
+                if (classificationNode != null)
                 {
-                    Name = classifictionGroupId.InnerText
-                });
-            }
+                    if (featureSet.FeatureClassificationSystem == null) { featureSet.FeatureClassificationSystem = new FeatureClassificationSystem(); }
+                    featureSet.FeatureClassificationSystem.Classification = classificationNode.InnerText;
+                }
 
-            // parse features
-            foreach (XmlNode featureNode in XmlUtils.SelectNodes(productNode, "./bmecat:PRODUCT_FEATURES/bmecat:FEATURE", nsmgr))
-            {
-                product.ProductFeatures.Add(new Feature()
+                XmlNode classifictionGroupName = articleFeaturesNode.SelectSingleNode("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_GROUP_NAME", nsmgr);
+                if (classifictionGroupName != null)
                 {
-                    Name = XmlUtils.nodeAsString(featureNode, "./bmecat:FNAME", nsmgr),
-                    Values = XmlUtils.nodesAsStrings(featureNode, "./bmecat:FVALUE", nsmgr),
-                    Unit = _convertQuantityCode(XmlUtils.nodeAsString(featureNode, "./bmecat:FUNIT", nsmgr, null), extensions),
-                    Order = XmlUtils.nodeAsString(featureNode, "./bmecat:FORDER", nsmgr)
-                    /* TODO: FVALUE_TYPE */
-                });
+                    if (featureSet.FeatureClassificationSystem == null) { featureSet.FeatureClassificationSystem = new FeatureClassificationSystem(); }
+                    featureSet.FeatureClassificationSystem.GroupName = classifictionGroupName.InnerText;
+                }
+
+                foreach (XmlNode classifictionGroupId in articleFeaturesNode.SelectNodes("./bmecat:PRODUCT_FEATURES/bmecat:REFERENCE_FEATURE_GROUP_ID", nsmgr))
+                {
+                    if (featureSet.FeatureClassificationSystem == null) { featureSet.FeatureClassificationSystem = new FeatureClassificationSystem(); }
+                    featureSet.FeatureClassificationSystem.GroupIds.Add(new FeatureClassificationSystemGroupId()
+                    {
+                        Name = classifictionGroupId.InnerText
+                    });
+                }
+
+                // parse features
+                foreach (XmlNode featureNode in XmlUtils.SelectNodes(articleFeaturesNode, "./bmecat:PRODUCT_FEATURES/bmecat:FEATURE", nsmgr))
+                {
+                    featureSet.Features.Add(new Feature()
+                    {
+                        Name = XmlUtils.nodeAsString(featureNode, "./bmecat:FNAME", nsmgr),
+                        Values = XmlUtils.nodesAsStrings(featureNode, "./bmecat:FVALUE", nsmgr),
+                        Unit = _convertQuantityCode(XmlUtils.nodeAsString(featureNode, "./bmecat:FUNIT", nsmgr, null), extensions),
+                        Order = XmlUtils.nodeAsString(featureNode, "./bmecat:FORDER", nsmgr)
+                        /* TODO: FVALUE_TYPE */
+                    });
+                }
+
+                product.FeatureSets.Add(featureSet);
             }
 
             XmlNode orderDetailsNode = XmlUtils.SelectSingleNode(productNode, "./bmecat:PRODUCT_ORDER_DETAILS", nsmgr);

@@ -20,6 +20,7 @@ using BMECat.net.ETIM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace BMECat.net
@@ -37,13 +38,12 @@ namespace BMECat.net
         public Product()
         {
         }
-
-        public FeatureClassificationSystem FeatureClassificationSystem { get; set; }
+        
 
         /// <summary>
         /// Description of the product by features and/or classification of the product
         /// </summary>
-        public List<Feature> ProductFeatures { get; set; } = new List<Feature>();
+        public List<FeatureSet> FeatureSets { get; set; } = new List<FeatureSet>();
 
         public List<ProductId> SupplierPIds { get; set; } = new List<ProductId>();
         public OrderDetails OrderDetails { get; set; }
@@ -61,9 +61,33 @@ namespace BMECat.net
         public List<Tuple<string, string>> ExtendedInformation { get; set; } = new List<Tuple<string, string>>();
 
 
-        public Feature GetProductFeature(string featureName, Feature defaultValue = null)
+        public Feature GetFeature(string featureName, bool ignoreCase = true, Feature defaultValue = null)
         {
-            return this.ProductFeatures.FirstOrDefault(f => f.Name.Equals(featureName));
-        } // !GetProductFeatures()
+            foreach (FeatureSet featureSet in this.FeatureSets)
+            {
+                if (featureSet.Contains(featureName, ignoreCase))
+                {
+                    return featureSet.Get(featureName, ignoreCase);
+                }
+            }
+
+            return defaultValue;
+        } // !GetFeature()
+
+
+        public void RemoveFeature(string featureName, bool ignoreCase = true)
+        {
+            foreach (FeatureSet featureSet in this.FeatureSets)
+            {
+                if (ignoreCase)
+                {
+                    featureSet.Features = featureSet.Features.Where(f => !f.Name.ToLower().Equals(featureName.ToLower())).ToList();
+                }
+                else
+                {
+                    featureSet.Features = featureSet.Features.Where(f => !f.Name.Equals(featureName)).ToList();
+                }                
+            }
+        } // !RemoveFeature()
     }
 }
