@@ -16,6 +16,7 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+using BMECat.net.ETIM;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -316,6 +317,17 @@ namespace BMECat.net
                 });
             }
 
+            XmlNode extensionNode = XmlUtils.SelectSingleNode(productNode, "./USER_DEFINED_EXTENSIONS", nsmgr);
+            if (extensionNode != null)
+            {
+                if (extensionNode.InnerXml.Contains(".EDXF."))
+                {
+                    product.EDXF = _readEDXF(extensionNode, nsmgr);
+                }
+
+                product.ExtendedInformation = _readExtendedInformation(extensionNode, nsmgr);
+            }
+
             await Task.CompletedTask;
 
             return product;
@@ -364,5 +376,89 @@ namespace BMECat.net
 
             return p;
         } // !_ReadyPartyAddressAsync()
+
+
+        private static List<Tuple<string, string>> _readExtendedInformation(XmlNode extensionNode, XmlNamespaceManager nsmgr)
+        {
+            List<Tuple<string, string>> retval = new List<Tuple<string, string>>();
+            foreach (XmlNode node in extensionNode.ChildNodes)
+            {
+                if (node.Name.Contains(".EDXF"))
+                {
+                    continue;
+                }
+
+                string key = node.Name.Replace("UDX.", "");
+                string value = node.InnerText;
+
+                retval.Add(new Tuple<string, string>(key, value));
+            }
+
+            return retval;
+        } // !_readExtendedInformation()
+
+
+        private static EDXF _readEDXF(XmlNode extensionNode, XmlNamespaceManager nsmgr)
+        {
+            EDXF retval = new EDXF()
+            {
+                ManufacturerAcronym = XmlUtils.nodeAsString(extensionNode, "./UDX.EDXF.MANUFACTURER_ACRONYM", nsmgr),
+                ManufacturerDiscountGroups = XmlUtils.nodesAsStrings(extensionNode, "./UDX.EDXF.DISCOUNT_GROUP/UDX.EDXF.DISCOUNT_GROUP_MANUFACTURER", nsmgr),
+                SupplierDiscountGroups = XmlUtils.nodesAsStrings(extensionNode, "./UDX.EDXF.DISCOUNT_GROUP/UDX.EDXF.DISCOUNT_GROUP_SUPPLIER", nsmgr),
+                ProductSeries = XmlUtils.nodesAsStrings(extensionNode, "./UDX.EDXF.PRODUCT_SERIES", nsmgr),
+                ValidFrom = XmlUtils.nodeAsDateTime(extensionNode, "./UDX.EDXF.VALID_FROM", nsmgr)
+            };
+
+            foreach (XmlNode packagingUnitNode in XmlUtils.SelectNodes(extensionNode, "./UDX.EDXF.PACKING_UNITS/UDX.EDXF.PACKING_UNIT", nsmgr))
+            {
+                PackagingUnit pu = new PackagingUnit()
+                {
+                    QuantityMin = XmlUtils.nodeAsInt(packagingUnitNode, "./UDX.EDXF.QUANTITY_MIN", nsmgr),
+                    QuantityMax = XmlUtils.nodeAsInt(packagingUnitNode, "./UDX.EDXF.QUANTITY_MAX", nsmgr),
+                    PackagingUnitCode = XmlUtils.nodeAsString(packagingUnitNode, "./UDX.EDXF.PACKING_UNIT_CODE", nsmgr),
+                    Weight = XmlUtils.nodeAsDecimal(packagingUnitNode, "./UDX.EDXF.WEIGHT", nsmgr),
+                    Length = XmlUtils.nodeAsDecimal(packagingUnitNode, "./UDX.EDXF.LENGTH", nsmgr),
+                    Width = XmlUtils.nodeAsDecimal(packagingUnitNode, "./UDX.EDXF.WIDTH", nsmgr),
+                    Depth = XmlUtils.nodeAsDecimal(packagingUnitNode, "./UDX.EDXF.DEPTH", nsmgr),
+                    GTIN = XmlUtils.nodeAsString(packagingUnitNode, "./UDX.EDXF.GTIN", nsmgr)
+                };
+
+                retval.PackagingUnits.Add(pu);
+            }
+
+            XmlNode productLogisticsDetailsNode = XmlUtils.SelectSingleNode(extensionNode, "./UDX.EDXF.PRODUCT_LOGISTIC_DETAILS", nsmgr);
+            if (productLogisticsDetailsNode != null)
+            {
+                retval.ProductLogisticsDetails = new ProductLogisticsDetails()
+                {
+                    NetWeight = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./UDX.EDXF.NETWEIGHT", nsmgr),
+                    NetLength = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./UDX.EDXF.NETLENGTH", nsmgr),
+                    NetWidth = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./UDX.EDXF.NETWIDTH", nsmgr),
+                    NetDepth = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./UDX.EDXF.NETDEPTH", nsmgr),
+                    NetDiameter = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./UDX.EDXF.NETDIAMETER", nsmgr),
+                    RegionOfOrigin = XmlUtils.nodeAsString(productLogisticsDetailsNode, "./UDX.EDXF.REGION_OF_ORIGIN", nsmgr)
+                };
+            }
+
+            foreach (XmlNode mimeNode in XmlUtils.SelectNodes(extensionNode, "./UDX.EDXF.MIME_INFO/UDX.EDXF.MIME", nsmgr))
+            {
+                retval.MimeInfos.Add(new MimeInfo()
+                {
+                    Source = XmlUtils.nodeAsString(mimeNode, "./UDX.EDXF.MIME_SOURCE", nsmgr),
+                    Alt = XmlUtils.nodeAsString(mimeNode, "./UDX.EDXF.MIME_ALT", nsmgr),
+                    Description = XmlUtils.nodeAsString(mimeNode, "./UDX.EDXF.MIME_DESIGNATION", nsmgr),
+                    Filename = XmlUtils.nodeAsString(mimeNode, "./UDX.EDXF.MIME_FILENAME", nsmgr),
+                    Code = XmlUtils.nodeAsString(mimeNode, "./UDX.EDXF.MIME_CODE", nsmgr),
+                });
+            }
+
+            retval.Reach = new Reach()
+            {
+                Info = XmlUtils.nodeAsString(extensionNode, "./UDX.EDXF.REACH/UDX.EDXF.REACH.INFO", nsmgr),
+                ListDate = XmlUtils.nodeAsDateTime(extensionNode, "./UDX.EDXF.REACH/UDX.EDXF.REACH.LISTDATE", nsmgr)
+            };
+
+            return retval;
+        } // !_readEDXF()
     }
 }
