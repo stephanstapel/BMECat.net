@@ -128,6 +128,41 @@ namespace BMECat.net
                 mutex.ReleaseMutex();
             });
 
+            // -- map catalog group assignments to products
+            Dictionary<string, List<ProductCatalogGroupMapping>> _mappingsMap = new Dictionary<string, List<ProductCatalogGroupMapping>>();
+
+            XmlNodeList articleToCatalogGroupMapNodes = doc.DocumentElement.SelectNodes("/BMECAT/T_NEW_CATALOG/ARTICLE_TO_CATALOGGROUP_MAP", nsmgr);
+            Parallel.ForEach(articleToCatalogGroupMapNodes.Cast<XmlNode>(), /* new ParallelOptions() {  MaxDegreeOfParallelism = 1 }, */
+            async (XmlNode articleToCatalogGroupMapNode) =>
+            {
+                string articleId = XmlUtils.nodeAsString(articleToCatalogGroupMapNode, "./ART_ID", nsmgr);
+
+                mutex.WaitOne();
+                if (!_mappingsMap.ContainsKey(articleId))
+                {
+                    _mappingsMap.Add(articleId, new List<ProductCatalogGroupMapping>());
+                }
+
+                _mappingsMap[articleId].Add(new ProductCatalogGroupMapping()
+                {
+                    /**
+                     * @todo read optional SUPPLIER_IDREF sub structure
+                     */
+
+                    CatalogGroupId = XmlUtils.nodeAsString(articleToCatalogGroupMapNode, "./CATALOG_GROUP_ID", nsmgr),
+                    Order = XmlUtils.nodeAsInt(articleToCatalogGroupMapNode, "./ARTICLE_TO_CATALOGGROUP_MAP_ORDER", nsmgr)
+                });
+                mutex.ReleaseMutex();
+            });
+
+            foreach(Product p in retval.Products)
+            {
+                if (_mappingsMap.ContainsKey(p.No))
+                {
+                    p.ProductCatalogGroupMappings = _mappingsMap[p.No];
+                }
+            }
+
             return retval;
         } // !LoadAsync()
 

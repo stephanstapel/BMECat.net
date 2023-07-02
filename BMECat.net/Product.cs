@@ -59,6 +59,8 @@ namespace BMECat.net
         public List<Reference> References { get; set; } = new List<Reference>();
         public EDXF EDXF { get; set; }
         public List<Tuple<string, string>> ExtendedInformation { get; set; } = new List<Tuple<string, string>>();
+        public List<ProductCatalogGroupMapping> ProductCatalogGroupMappings { get; set; } = new List<ProductCatalogGroupMapping>();
+
 
 
         public Feature GetFeature(string featureName, bool ignoreCase = true, Feature defaultValue = null)
