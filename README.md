@@ -6,6 +6,12 @@ Developers could use this library to parse, create, and modify BMEcat documents,
 
 The library supports both version 1.2 and 2005 (including 2005fd). Support for extended data structures (like product features, address details) is for reading only so far. If you need to create BMECat files with extended data structures, drop me a message.
 
+Core features:
+* High performance: reads a 10K product catalog with all extensions in under 4 seconds on an average i7 workstation
+* Trading time for memory: focus on execution time instead of memory consumption.
+* Version agnostic: allows to read catalog structures without paying attention to the actual version
+* Non-standard-friendly: supports various non-standard elements, mainly though the mix of 1.2 and 2005 formats that are found in real life
+
 The library has a sister library (https://github.com/stephanstapel/OpenTrans.net) which allows to process order files.
 
 
