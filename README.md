@@ -4,7 +4,8 @@
 BMECat.net is a .net open source library that allows you to read and write BMEcat descriptions would be a software component that provides developers with a set of tools and functionalities to manipulate BMEcat files programmatically. This library would enable software applications to easily integrate BMEcat support, allowing for the efficient exchange of product information between different systems and partners. Our aim is to support real world BMECat files which often do not match the standard 100%.
 Developers could use this library to parse, create, and modify BMEcat documents, accessing product data in a standardized and structured way. Overall, this library simplifies the development of software applications that rely on BMEcat for product information exchange.
 
-The library supports both version 1.2 and 2005 (including 2005fd). Support for extended data structures (like product features, address details) is for reading only so far. If you need to create BMECat files with extended data structures, drop me a message.
+The library supports both version 1.2 and 2005 (including 2005fd). Reading of extended data structures (like product features, address details) is implemented.
+If you are looking for writing special elements and extended data structures, I'm happy to accept sponsoring.
 
 Core features:
 * High performance: reads a 10K product catalog with all extensions in under 4 seconds on an average i7 workstation
