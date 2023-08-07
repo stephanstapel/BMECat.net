@@ -314,15 +314,15 @@ namespace BMECat.net
                 DescriptionShort = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:DESCRIPTION_SHORT", nsmgr),
                 DescriptionLong = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:DESCRIPTION_LONG", nsmgr),
                 Stock = XmlUtils.nodeAsInt(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:STOCK", nsmgr),
-                ManufacturerPID = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_PID", nsmgr),
-                ManufacturerName = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_NAME", nsmgr),
-                ManufacturerTypeDescription = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_TYPE_DESCR", nsmgr),
-                ERPGroupSupplier = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/ERP_GROUP_SUPPLIER", nsmgr),
-                ERPGroupBuyer = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/ERP_GROUP_BUYER", nsmgr),
+                ManufacturerPID = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:MANUFACTURER_PID", nsmgr),
+                ManufacturerName = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:MANUFACTURER_NAME", nsmgr),
+                ManufacturerTypeDescription = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:MANUFACTURER_TYPE_DESCR", nsmgr),
+                ERPGroupSupplier = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:ERP_GROUP_SUPPLIER", nsmgr),
+                ERPGroupBuyer = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:ERP_GROUP_BUYER", nsmgr),
             };
 
             // take care of proper EAN/ GTIN processing                        
-            string supplierAltPid = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/SUPPLIER_ALT_PID", nsmgr);
+            string supplierAltPid = XmlUtils.nodeAsString(productNode, "./bmecat:PRODUCT_DETAILS/bmecat:SUPPLIER_ALT_PID", nsmgr);
             if (!String.IsNullOrEmpty(supplierAltPid))
             {
                 product.PIds.Add(new ProductId()
