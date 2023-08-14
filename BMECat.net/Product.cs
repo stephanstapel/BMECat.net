@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 
 namespace BMECat.net
 {
@@ -51,10 +52,36 @@ namespace BMECat.net
         public List<MimeInfo> MimeInfos { get; set; } = new List<MimeInfo>();
         public LogisticsDetails LogisticsDetails { get; set; }
         public string SupplierAltPid { get; set; }
+
+        /// <summary>
+        /// Product ID of the manufacturer
+        /// </summary>
         public string ManufacturerPID { get; set; }
+
+        /// <summary>
+        /// This element contains the name of the manufacturer of the product.
+        /// </summary>
         public string ManufacturerName { get; set; }
+
+        /// <summary>
+        /// The manufacturer’s type description is a name for the product which may, in certain
+        /// circumstances, be more widely-known than the correct product name.When a
+        /// manufacturer’s type description is specified, the name of the manufacturer must also
+        /// be specified (MANUFACTURER_NAME).
+        /// </summary>
         public string ManufacturerTypeDescription { get; set; }
+
+        /// <summary>
+        /// Specifices the material group or material class of the article in the supplier’s ERP
+        /// system
+        /// </summary>
         public string ERPGroupSupplier { get; set; }
+
+        /// <summary>
+        /// Specifies the material group or material class of the article in the ERP system of the
+        /// buying company
+        /// Value range: Depends on buying firm’s ERP(BUYER)
+        /// </summary>
         public string ERPGroupBuyer { get; set; }
         public List<Reference> References { get; set; } = new List<Reference>();
         public EDXF EDXF { get; set; }

@@ -122,6 +122,12 @@ namespace BMECat.net
                 }
                 
                 _writeOptionalElementString(Writer, "STOCK", String.Format("{0}", product.Stock));
+                _writeOptionalElementString(Writer, "MANUFACTURER_PID", String.Format("{0}", product.ManufacturerPID));
+                _writeOptionalElementString(Writer, "MANUFACTURER_NAME", String.Format("{0}", product.ManufacturerName));
+                _writeOptionalElementString(Writer, "MANUFACTURER_TYPE_DESCR", String.Format("{0}", product.ManufacturerTypeDescription));
+                _writeOptionalElementString(Writer, "ERP_GROUP_SUPPLIER", String.Format("{0}", product.ERPGroupSupplier));
+                _writeOptionalElementString(Writer, "ERP_GROUP_BUYER", String.Format("{0}", product.ERPGroupBuyer));             
+
                 Writer.WriteEndElement(); // !PRODUCT_DETAILS
 
                 if (product.OrderDetails != null)
