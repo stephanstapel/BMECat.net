@@ -23,6 +23,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
@@ -39,41 +40,67 @@ namespace BMECat.net
                 return null;
             }
 
-            XmlDocument doc = new XmlDocument();
-            doc.Load(inputStream);
+            // make sure that the root element contains xmlns elements to indicate which namespace to use
+            MemoryStream convertedStream = new MemoryStream();
+            byte[] firstPartOfBuffer = new byte[1024];
+            inputStream.Read(firstPartOfBuffer, 0, 1024);
+            string firstPartString = System.Text.Encoding.UTF8.GetString(firstPartOfBuffer);
 
-            XmlNamespaceManager nsmgr = new XmlNamespaceManager(doc.DocumentElement.OwnerDocument.NameTable);
-            nsmgr.AddNamespace("xsi", "http://www.bmecat.org/bmecat/1.2/bmecat_new_catalog");
+            if (!firstPartString.Contains("xmlns"))
+            {
+                string pattern = "<BMECAT.*?>";
+                string replacement = @"<BMECAT xmlns=""http://www.bmecat.org/bmecat:bmecat/bmecat:1.2/bmecat:bmecat_new_catalog"" version=""1.2"">";
+                string outputString = Regex.Replace(firstPartString, pattern, replacement);
+                byte[] outputBuffer = System.Text.Encoding.UTF8.GetBytes(outputString);
+                convertedStream.Write(outputBuffer, 0, outputBuffer.Length);
+            }
+            else
+            {
+                inputStream.Position = 0;
+            }
+
+            inputStream.CopyTo(convertedStream);
+            convertedStream.Position = 0;
+            XmlDocument doc = new XmlDocument();
+            doc.Load(convertedStream);
+
+            XmlNamespaceManager nsmgr = new XmlNamespaceManager(doc.NameTable);
+
+            string xmlnsURL = XmlUtils.AttributeText(doc.DocumentElement, "xmlns");
+            if (!String.IsNullOrEmpty(xmlnsURL))
+            {
+                nsmgr.AddNamespace("bmecat", xmlnsURL);
+            }
 
             ProductCatalog retval = new ProductCatalog();
 
-            foreach(XmlNode languageNode in doc.SelectNodes("/BMECAT/HEADER/CATALOG/LANGUAGE", nsmgr))
+            foreach(XmlNode languageNode in doc.SelectNodes("/bmecat:BMECAT/bmecat:HEADER/bmecat:CATALOG/bmecat:LANGUAGE", nsmgr))
             {
                 LanguageCodes language = default(LanguageCodes).FromString(languageNode.InnerText);
                 retval.Languages.Add(language);
             }
 
-            retval.CatalogId = XmlUtils.nodeAsString(doc, "/BMECAT/HEADER/CATALOG/CATALOG_ID", nsmgr);
-            retval.CatalogVersion = XmlUtils.nodeAsString(doc, "/BMECAT/HEADER/CATALOG/CATALOG_VERSION", nsmgr);
-            retval.CatalogName = XmlUtils.nodeAsString(doc.DocumentElement, "/BMECAT/HEADER/CATALOG/CATALOG_NAME", nsmgr);
-            retval.GenerationDate = XmlUtils.nodeAsDateTime(doc.DocumentElement, "/BMECAT/HEADER/CATALOG/GENERATION_DATE", nsmgr);
-            retval.Currency = default(CurrencyCodes).FromString(XmlUtils.nodeAsString(doc.DocumentElement, "/BMECAT/HEADER/CATALOG/CURRENCY", nsmgr));
+            retval.CatalogId = XmlUtils.nodeAsString(doc, "/bmecat:BMECAT/bmecat:HEADER/bmecat:CATALOG/bmecat:CATALOG_ID", nsmgr);
+            retval.CatalogVersion = XmlUtils.nodeAsString(doc, "/bmecat:BMECAT/bmecat:HEADER/bmecat:CATALOG/bmecat:CATALOG_VERSION", nsmgr);
+            retval.CatalogName = XmlUtils.nodeAsString(doc.DocumentElement, "/bmecat:BMECAT/bmecat:HEADER/bmecat:CATALOG/bmecat:CATALOG_NAME", nsmgr);
+            retval.GenerationDate = XmlUtils.nodeAsDateTime(doc.DocumentElement, "/bmecat:BMECAT/bmecat:HEADER/bmecat:CATALOG/bmecat:GENERATION_DATE", nsmgr);
+            retval.Currency = default(CurrencyCodes).FromString(XmlUtils.nodeAsString(doc.DocumentElement, "/bmecat:BMECAT/bmecat:HEADER/bmecat:CATALOG/bmecat:CURRENCY", nsmgr));
 
-            XmlNode agreementNode = doc.SelectSingleNode("/BMECAT/HEADER/AGREEMENT", nsmgr);
+            XmlNode agreementNode = doc.SelectSingleNode("/bmecat:BMECAT/bmecat:HEADER/bmecat:AGREEMENT", nsmgr);
             if (agreementNode != null)
             {
                 retval.Agreement = new Agreement()
                 {
-                    Id = XmlUtils.nodeAsString(agreementNode, "./AGREEMENT_ID", nsmgr),
-                    StartDate = XmlUtils.nodeAsDateTime(agreementNode, "./AGREEMENT_START_DATE", nsmgr),
-                    EndDate = XmlUtils.nodeAsDateTime(agreementNode, "./AGREEMENT_END_DATE", nsmgr),
+                    Id = XmlUtils.nodeAsString(agreementNode, "./bmecat:AGREEMENT_ID", nsmgr),
+                    StartDate = XmlUtils.nodeAsDateTime(agreementNode, "./bmecat:AGREEMENT_START_DATE", nsmgr),
+                    EndDate = XmlUtils.nodeAsDateTime(agreementNode, "./bmecat:AGREEMENT_END_DATE", nsmgr),
                 };
             }
 
-            XmlNode buyerNode = doc.SelectSingleNode("/BMECAT/HEADER/BUYER", nsmgr);
+            XmlNode buyerNode = doc.SelectSingleNode("/bmecat:BMECAT/bmecat:HEADER/bmecat:BUYER", nsmgr);
             if (buyerNode != null)
             {
-                XmlNode addressNode = doc.SelectSingleNode("./ADDRESS", nsmgr);
+                XmlNode addressNode = doc.SelectSingleNode("./bmecat:ADDRESS", nsmgr);
                 if (addressNode != null)
                 {
                     retval.Buyer = await _ReadPartyAddressAsync(addressNode, nsmgr);                    
@@ -84,15 +111,15 @@ namespace BMECat.net
                 }
 
                 /* @todo regard id types */
-                retval.Buyer.Id = XmlUtils.nodeAsString(buyerNode, "./BUYER_ID", nsmgr);
-                retval.Buyer.Name = XmlUtils.nodeAsString(buyerNode, "./BUYER_NAME", nsmgr);                
+                retval.Buyer.Id = XmlUtils.nodeAsString(buyerNode, "./bmecat:BUYER_ID", nsmgr);
+                retval.Buyer.Name = XmlUtils.nodeAsString(buyerNode, "./bmecat:BUYER_NAME", nsmgr);                
             }
 
-            XmlNode supplierNode = doc.SelectSingleNode("/BMECAT/HEADER/SUPPLIER", nsmgr);
+            XmlNode supplierNode = doc.SelectSingleNode("/bmecat:BMECAT/bmecat:HEADER/bmecat:SUPPLIER", nsmgr);
             if (supplierNode != null)
             {
 
-                XmlNode addressNode = doc.SelectSingleNode("./ADDRESS", nsmgr);
+                XmlNode addressNode = doc.SelectSingleNode("./bmecat:ADDRESS", nsmgr);
                 if (addressNode != null)
                 {
                     retval.Supplier = await _ReadPartyAddressAsync(addressNode, nsmgr);
@@ -103,12 +130,12 @@ namespace BMECat.net
                 }
 
                 /* @todo regard id types */
-                retval.Supplier.Id = XmlUtils.nodeAsString(supplierNode, "./SUPPLIER_ID", nsmgr);
-                retval.Supplier.Name = XmlUtils.nodeAsString(supplierNode, "./SUPPLIER_NAME", nsmgr);
+                retval.Supplier.Id = XmlUtils.nodeAsString(supplierNode, "./bmecat:SUPPLIER_ID", nsmgr);
+                retval.Supplier.Name = XmlUtils.nodeAsString(supplierNode, "./bmecat:SUPPLIER_NAME", nsmgr);
             }
 
             Mutex mutex = new Mutex();
-            XmlNodeList productNodes = doc.DocumentElement.SelectNodes("/BMECAT/T_NEW_CATALOG/ARTICLE", nsmgr);
+            XmlNodeList productNodes = doc.DocumentElement.SelectNodes("/bmecat:BMECAT/bmecat:T_NEW_CATALOG/bmecat:ARTICLE", nsmgr);
             Parallel.ForEach(productNodes.Cast<XmlNode>(), /* new ParallelOptions() {  MaxDegreeOfParallelism = 1 }, */
                              async (XmlNode productNode) =>
             {
@@ -118,7 +145,7 @@ namespace BMECat.net
                 mutex.ReleaseMutex();
             });
 
-            XmlNodeList catalogNodes = doc.DocumentElement.SelectNodes("/BMECAT/T_NEW_CATALOG/CATALOG_GROUP_SYSTEM/CATALOG_STRUCTURE", nsmgr);
+            XmlNodeList catalogNodes = doc.DocumentElement.SelectNodes("/bmecat:BMECAT/bmecat:T_NEW_CATALOG/bmecat:CATALOG_GROUP_SYSTEM/bmecat:CATALOG_STRUCTURE", nsmgr);
             Parallel.ForEach(catalogNodes.Cast<XmlNode>(), /* new ParallelOptions() {  MaxDegreeOfParallelism = 1 }, */
                              async (XmlNode catalogNode) =>
             {
@@ -131,11 +158,11 @@ namespace BMECat.net
             // -- map catalog group assignments to products
             Dictionary<string, List<ProductCatalogGroupMapping>> _mappingsMap = new Dictionary<string, List<ProductCatalogGroupMapping>>();
 
-            XmlNodeList articleToCatalogGroupMapNodes = doc.DocumentElement.SelectNodes("/BMECAT/T_NEW_CATALOG/ARTICLE_TO_CATALOGGROUP_MAP", nsmgr);
+            XmlNodeList articleToCatalogGroupMapNodes = doc.DocumentElement.SelectNodes("/bmecat:BMECAT/bmecat:T_NEW_CATALOG/bmecat:ARTICLE_TO_CATALOGGROUP_MAP", nsmgr);
             Parallel.ForEach(articleToCatalogGroupMapNodes.Cast<XmlNode>(), /* new ParallelOptions() {  MaxDegreeOfParallelism = 1 }, */
             async (XmlNode articleToCatalogGroupMapNode) =>
             {
-                string articleId = XmlUtils.nodeAsString(articleToCatalogGroupMapNode, "./ART_ID", nsmgr);
+                string articleId = XmlUtils.nodeAsString(articleToCatalogGroupMapNode, "./bmecat:ART_ID", nsmgr);
 
                 mutex.WaitOne();
                 if (!_mappingsMap.ContainsKey(articleId))
@@ -149,8 +176,8 @@ namespace BMECat.net
                      * @todo read optional SUPPLIER_IDREF sub structure
                      */
 
-                    CatalogGroupId = XmlUtils.nodeAsString(articleToCatalogGroupMapNode, "./CATALOG_GROUP_ID", nsmgr),
-                    Order = XmlUtils.nodeAsInt(articleToCatalogGroupMapNode, "./ARTICLE_TO_CATALOGGROUP_MAP_ORDER", nsmgr)
+                    CatalogGroupId = XmlUtils.nodeAsString(articleToCatalogGroupMapNode, "./bmecat:CATALOG_GROUP_ID", nsmgr),
+                    Order = XmlUtils.nodeAsInt(articleToCatalogGroupMapNode, "./bmecat:ARTICLE_TO_CATALOGGROUP_MAP_ORDER", nsmgr)
                 });
                 mutex.ReleaseMutex();
             });
@@ -172,22 +199,22 @@ namespace BMECat.net
             CatalogStructure catalogStructure = new CatalogStructure()
             {
                 Type = default(CatalogStructureTypes).FromString(XmlUtils.AttributeText(catalogNode, "type")),
-                GroupId = XmlUtils.nodeAsString(catalogNode, "./GROUP_ID", nsmgr),
-                GroupName = XmlUtils.nodeAsString(catalogNode, "./GROUP_NAME", nsmgr),
-                ParentId = XmlUtils.nodeAsString(catalogNode, "./PARENT_ID", nsmgr),
-                GroupOrder = XmlUtils.nodeAsString(catalogNode, "./GROUP_ORDER", nsmgr),
+                GroupId = XmlUtils.nodeAsString(catalogNode, "./bmecat:GROUP_ID", nsmgr),
+                GroupName = XmlUtils.nodeAsString(catalogNode, "./bmecat:GROUP_NAME", nsmgr),
+                ParentId = XmlUtils.nodeAsString(catalogNode, "./bmecat:PARENT_ID", nsmgr),
+                GroupOrder = XmlUtils.nodeAsString(catalogNode, "./bmecat:GROUP_ORDER", nsmgr),
             };
 
-            foreach(XmlNode mimeNode in catalogNode.SelectNodes("./MIME_INFO/MIME", nsmgr))
+            foreach(XmlNode mimeNode in catalogNode.SelectNodes("./bmecat:MIME_INFO/bmecat:MIME", nsmgr))
             {
                 catalogStructure.MimeInfos.Add(new MimeInfo()
                 {
-                    MimeType = default(MimeTypes).FromString(XmlUtils.nodeAsString(mimeNode, "./MIME_TYPE", nsmgr)),
-                    Source = XmlUtils.nodeAsString(mimeNode, "./MIME_SOURCE", nsmgr),
-                    Description = XmlUtils.nodeAsString(mimeNode, "./MIME_DESCR", nsmgr),
-                    Purpose = XmlUtils.nodeAsString(mimeNode, "./MIME_PURPOSE", nsmgr),
-                    Alt = XmlUtils.nodeAsString(mimeNode, "./MIME_ALT", nsmgr),
-                    Order = XmlUtils.nodeAsInt(mimeNode, "./MIME_ORDER", nsmgr),
+                    MimeType = default(MimeTypes).FromString(XmlUtils.nodeAsString(mimeNode, "./bmecat:MIME_TYPE", nsmgr)),
+                    Source = XmlUtils.nodeAsString(mimeNode, "./bmecat:MIME_SOURCE", nsmgr),
+                    Description = XmlUtils.nodeAsString(mimeNode, "./bmecat:MIME_DESCR", nsmgr),
+                    Purpose = XmlUtils.nodeAsString(mimeNode, "./bmecat:MIME_PURPOSE", nsmgr),
+                    Alt = XmlUtils.nodeAsString(mimeNode, "./bmecat:MIME_ALT", nsmgr),
+                    Order = XmlUtils.nodeAsInt(mimeNode, "./bmecat:MIME_ORDER", nsmgr),
                 });
             }
 
@@ -203,19 +230,19 @@ namespace BMECat.net
 
             Product product = new Product()
             {
-                No = XmlUtils.nodeAsString(productNode, "./SUPPLIER_AID", nsmgr),
-                DescriptionShort = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/DESCRIPTION_SHORT", nsmgr),
-                DescriptionLong = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/DESCRIPTION_LONG", nsmgr),                
-                Stock = XmlUtils.nodeAsInt(productNode, "./ARTICLE_DETAILS/STOCK", nsmgr),                                
-                SupplierAltPid = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/SUPPLIER_ALT_AID", nsmgr),
-                ManufacturerPID = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_AID", nsmgr),
-                ManufacturerName = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_NAME", nsmgr),
-                ManufacturerTypeDescription = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/MANUFACTURER_TYPE_DESCR", nsmgr),
-                ERPGroupSupplier = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/ERP_GROUP_SUPPLIER", nsmgr),
-                ERPGroupBuyer = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/ERP_GROUP_BUYER", nsmgr),
+                No = XmlUtils.nodeAsString(productNode, "./bmecat:SUPPLIER_AID", nsmgr),
+                DescriptionShort = XmlUtils.nodeAsString(productNode, "./bmecat:ARTICLE_DETAILS/bmecat:DESCRIPTION_SHORT", nsmgr),
+                DescriptionLong = XmlUtils.nodeAsString(productNode, "./bmecat:ARTICLE_DETAILS/bmecat:DESCRIPTION_LONG", nsmgr),                
+                Stock = XmlUtils.nodeAsInt(productNode, "./bmecat:ARTICLE_DETAILS/bmecat:STOCK", nsmgr),                                
+                SupplierAltPid = XmlUtils.nodeAsString(productNode, "./bmecat:ARTICLE_DETAILS/bmecat:SUPPLIER_ALT_AID", nsmgr),
+                ManufacturerPID = XmlUtils.nodeAsString(productNode, "./bmecat:ARTICLE_DETAILS/bmecat:MANUFACTURER_AID", nsmgr),
+                ManufacturerName = XmlUtils.nodeAsString(productNode, "./bmecat:ARTICLE_DETAILS/bmecat:MANUFACTURER_NAME", nsmgr),
+                ManufacturerTypeDescription = XmlUtils.nodeAsString(productNode, "./bmecat:ARTICLE_DETAILS/bmecat:MANUFACTURER_TYPE_DESCR", nsmgr),
+                ERPGroupSupplier = XmlUtils.nodeAsString(productNode, "./bmecat:ARTICLE_DETAILS/bmecat:ERP_GROUP_SUPPLIER", nsmgr),
+                ERPGroupBuyer = XmlUtils.nodeAsString(productNode, "./bmecat:ARTICLE_DETAILS/bmecat:ERP_GROUP_BUYER", nsmgr),
             };
 
-            string eanCode = XmlUtils.nodeAsString(productNode, "./ARTICLE_DETAILS/EAN", nsmgr);
+            string eanCode = XmlUtils.nodeAsString(productNode, "./bmecat:ARTICLE_DETAILS/bmecat:EAN", nsmgr);
             if (!String.IsNullOrEmpty(eanCode))
             {
                 product.PIds.Add(new ProductId()
@@ -228,11 +255,11 @@ namespace BMECat.net
 
             /*
              * @TODO 
-             * <SPECIAL_TREATMENT_CLASS type="SIDAB">true</SPECIAL_TREATMENT_CLASS>
-                <SPECIAL_TREATMENT_CLASS type="UN">3481</SPECIAL_TREATMENT_CLASS>
+             * <SPECIAL_TREATMENT_CLASS type="SIDAB">true</bmecat:SPECIAL_TREATMENT_CLASS>
+                <SPECIAL_TREATMENT_CLASS type="UN">3481</bmecat:SPECIAL_TREATMENT_CLASS>
              */
 
-            foreach (XmlNode supplierPIdNode in productNode.SelectNodes("./SUPPLIER_AID", nsmgr))
+            foreach (XmlNode supplierPIdNode in productNode.SelectNodes("./bmecat:SUPPLIER_AID", nsmgr))
             {
                 product.SupplierPIds.Add(new ProductId()
                 {
@@ -241,31 +268,31 @@ namespace BMECat.net
                 });
             }
 
-            foreach (XmlNode keywordNode in productNode.SelectNodes("./ARTICLE_DETAILS/KEYWORD", nsmgr))
+            foreach (XmlNode keywordNode in productNode.SelectNodes("./bmecat:ARTICLE_DETAILS/bmecat:KEYWORD", nsmgr))
             {
                 product.Keywords.Add(keywordNode.InnerText);
             }
 
             // parse features including classification
-            foreach(XmlNode articleFeaturesNode in productNode.SelectNodes("./ARTICLE_FEATURES", nsmgr))
+            foreach(XmlNode articleFeaturesNode in productNode.SelectNodes("./bmecat:ARTICLE_FEATURES", nsmgr))
             {
                 FeatureSet featureSet = new FeatureSet();
 
-                XmlNode classificationNode = articleFeaturesNode.SelectSingleNode("./REFERENCE_FEATURE_SYSTEM_NAME", nsmgr);
+                XmlNode classificationNode = articleFeaturesNode.SelectSingleNode("./bmecat:REFERENCE_FEATURE_SYSTEM_NAME", nsmgr);
                 if (classificationNode != null)
                 {
                     if (featureSet.FeatureClassificationSystem == null) { featureSet.FeatureClassificationSystem = new FeatureClassificationSystem(); }
                     featureSet.FeatureClassificationSystem.Classification = classificationNode.InnerText;
                 }
 
-                XmlNode classifictionGroupName = articleFeaturesNode.SelectSingleNode("./REFERENCE_FEATURE_GROUP_NAME", nsmgr);
+                XmlNode classifictionGroupName = articleFeaturesNode.SelectSingleNode("./bmecat:REFERENCE_FEATURE_GROUP_NAME", nsmgr);
                 if (classifictionGroupName != null)
                 {
                     if (featureSet.FeatureClassificationSystem == null) { featureSet.FeatureClassificationSystem = new FeatureClassificationSystem(); }
                     featureSet.FeatureClassificationSystem.GroupName = classifictionGroupName.InnerText;
                 }
 
-                foreach (XmlNode classifictionGroupId in articleFeaturesNode.SelectNodes("./REFERENCE_FEATURE_GROUP_ID", nsmgr))
+                foreach (XmlNode classifictionGroupId in articleFeaturesNode.SelectNodes("./bmecat:REFERENCE_FEATURE_GROUP_ID", nsmgr))
                 {
                     if (featureSet.FeatureClassificationSystem == null) { featureSet.FeatureClassificationSystem = new FeatureClassificationSystem(); }
                     featureSet.FeatureClassificationSystem.GroupIds.Add(new FeatureClassificationSystemGroupId()
@@ -275,14 +302,14 @@ namespace BMECat.net
                 }
 
                 // parse features
-                foreach (XmlNode featureNode in articleFeaturesNode.SelectNodes("./FEATURE", nsmgr))
+                foreach (XmlNode featureNode in articleFeaturesNode.SelectNodes("./bmecat:FEATURE", nsmgr))
                 {
                     featureSet.Features.Add(new Feature()
                     {
-                        Name = XmlUtils.nodeAsString(featureNode, "./FNAME", nsmgr),
-                        Values = XmlUtils.nodesAsStrings(featureNode, "./FVALUE", nsmgr),
-                        Unit = _convertQuantityCode(XmlUtils.nodeAsString(featureNode, "./FUNIT", nsmgr, null), extensions),
-                        Order = XmlUtils.nodeAsString(featureNode, "./FORDER", nsmgr)
+                        Name = XmlUtils.nodeAsString(featureNode, "./bmecat:FNAME", nsmgr),
+                        Values = XmlUtils.nodesAsStrings(featureNode, "./bmecat:FVALUE", nsmgr),
+                        Unit = _convertQuantityCode(XmlUtils.nodeAsString(featureNode, "./bmecat:FUNIT", nsmgr, null), extensions),
+                        Order = XmlUtils.nodeAsString(featureNode, "./bmecat:FORDER", nsmgr)
                         /* TODO: FVALUE_TYPE */
                     });
                 }
@@ -290,69 +317,69 @@ namespace BMECat.net
                 product.FeatureSets.Add(featureSet);
             }            
 
-            XmlNode orderDetailsNode = productNode.SelectSingleNode("./ARTICLE_ORDER_DETAILS", nsmgr);
+            XmlNode orderDetailsNode = productNode.SelectSingleNode("./bmecat:ARTICLE_ORDER_DETAILS", nsmgr);
             if (orderDetailsNode != null)
             {
                 product.OrderDetails = new OrderDetails()
                 {
-                    OrderUnit = _convertQuantityCode(XmlUtils.nodeAsString(productNode, "./ARTICLE_ORDER_DETAILS/ORDER_UNIT", nsmgr, null), extensions),
-                    ContentUnit = _convertQuantityCode(XmlUtils.nodeAsString(productNode, "./ARTICLE_ORDER_DETAILS/CONTENT_UNIT", nsmgr, null), extensions),
-                    ContentUnitPerOrderUnit = XmlUtils.nodeAsInt(orderDetailsNode, "./NO_CU_PER_OU", nsmgr),
-                    PriceQuantity = XmlUtils.nodeAsInt(orderDetailsNode, "./PRICE_QUANTITY", nsmgr),
-                    QuantityMin = XmlUtils.nodeAsInt(orderDetailsNode, "./QUANTITY_MIN", nsmgr),
-                    QuantityInterval = XmlUtils.nodeAsInt(orderDetailsNode, "./QUANTITY_INTERVAL", nsmgr),
+                    OrderUnit = _convertQuantityCode(XmlUtils.nodeAsString(productNode, "./bmecat:ARTICLE_ORDER_DETAILS/bmecat:ORDER_UNIT", nsmgr, null), extensions),
+                    ContentUnit = _convertQuantityCode(XmlUtils.nodeAsString(productNode, "./bmecat:ARTICLE_ORDER_DETAILS/bmecat:CONTENT_UNIT", nsmgr, null), extensions),
+                    ContentUnitPerOrderUnit = XmlUtils.nodeAsInt(orderDetailsNode, "./bmecat:NO_CU_PER_OU", nsmgr),
+                    PriceQuantity = XmlUtils.nodeAsInt(orderDetailsNode, "./bmecat:PRICE_QUANTITY", nsmgr),
+                    QuantityMin = XmlUtils.nodeAsInt(orderDetailsNode, "./bmecat:QUANTITY_MIN", nsmgr),
+                    QuantityInterval = XmlUtils.nodeAsInt(orderDetailsNode, "./bmecat:QUANTITY_INTERVAL", nsmgr),
                 };
             }
 
-            foreach (XmlNode priceDetailNode in productNode.SelectNodes("./ARTICLE_PRICE_DETAILS/ARTICLE_PRICE", nsmgr))
+            foreach (XmlNode priceDetailNode in productNode.SelectNodes("./bmecat:ARTICLE_PRICE_DETAILS/bmecat:ARTICLE_PRICE", nsmgr))
             {
                 product.Prices.Add(new ProductPrice()
                 {
                     PriceType = default(PriceTypes).FromString(XmlUtils.AttributeText(priceDetailNode, "price_type")),
-                    Amount = XmlUtils.nodeAsDecimal(priceDetailNode, "./PRICE_AMOUNT", nsmgr, 0).Value,
-                    Currency = default(CurrencyCodes).FromString(XmlUtils.nodeAsString(priceDetailNode, "./PRICE_CURRENCY", nsmgr)),
-                    Tax = XmlUtils.nodeAsDecimal(priceDetailNode, "./TAX", nsmgr, 0).Value,
-                    LowerBound = XmlUtils.nodeAsInt(priceDetailNode, "./LOWER_BOUND", nsmgr)
+                    Amount = XmlUtils.nodeAsDecimal(priceDetailNode, "./bmecat:PRICE_AMOUNT", nsmgr, 0).Value,
+                    Currency = default(CurrencyCodes).FromString(XmlUtils.nodeAsString(priceDetailNode, "./bmecat:PRICE_CURRENCY", nsmgr)),
+                    Tax = XmlUtils.nodeAsDecimal(priceDetailNode, "./bmecat:TAX", nsmgr, 0).Value,
+                    LowerBound = XmlUtils.nodeAsInt(priceDetailNode, "./bmecat:LOWER_BOUND", nsmgr)
                 });
             }
 
-            foreach (XmlNode mimeNode in productNode.SelectNodes("./MIME_INFO/MIME", nsmgr))
+            foreach (XmlNode mimeNode in productNode.SelectNodes("./bmecat:MIME_INFO/bmecat:MIME", nsmgr))
             {
                 product.MimeInfos.Add(new MimeInfo()
                 {
-                    MimeType = default(MimeTypes).FromString(XmlUtils.nodeAsString(mimeNode, "./MIME_TYPE", nsmgr)),
-                    Source = XmlUtils.nodeAsString(mimeNode, "./MIME_SOURCE", nsmgr),
-                    Description = XmlUtils.nodeAsString(mimeNode, "./MIME_DESCR", nsmgr),
-                    Purpose = XmlUtils.nodeAsString(mimeNode, "./MIME_PURPOSE", nsmgr),
-                    Order = XmlUtils.nodeAsInt(mimeNode, "./MIME_ORDER", nsmgr)
+                    MimeType = default(MimeTypes).FromString(XmlUtils.nodeAsString(mimeNode, "./bmecat:MIME_TYPE", nsmgr)),
+                    Source = XmlUtils.nodeAsString(mimeNode, "./bmecat:MIME_SOURCE", nsmgr),
+                    Description = XmlUtils.nodeAsString(mimeNode, "./bmecat:MIME_DESCR", nsmgr),
+                    Purpose = XmlUtils.nodeAsString(mimeNode, "./bmecat:MIME_PURPOSE", nsmgr),
+                    Order = XmlUtils.nodeAsInt(mimeNode, "./bmecat:MIME_ORDER", nsmgr)
                 });
             }
 
-            XmlNode logisticDetailsNode = productNode.SelectSingleNode("./PRODUCT_LOGISTIC_DETAILS", nsmgr);
+            XmlNode logisticDetailsNode = productNode.SelectSingleNode("./bmecat:PRODUCT_LOGISTIC_DETAILS", nsmgr);
             if (logisticDetailsNode != null)
             {
                 product.LogisticsDetails = new LogisticsDetails()
                 {
-                    CountryOfOrigin = default(CountryCodes).FromString(XmlUtils.nodeAsString(logisticDetailsNode, "./COUNTRY_OF_ORIGIN", nsmgr)),
-                    CustomsTariffNumber = XmlUtils.nodesAsStrings(logisticDetailsNode, "./CUSTOMS_TARIFF_NUMBER", nsmgr),
-                    Volume = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./PRODUCT_DIMENSIONS/VOLUME", nsmgr),
-                    Weight = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./PRODUCT_DIMENSIONS/WEIGHT", nsmgr),
-                    Length = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./PRODUCT_DIMENSIONS/LENGTH", nsmgr),
-                    Width = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./PRODUCT_DIMENSIONS/WIDTH", nsmgr),
-                    Depth = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./PRODUCT_DIMENSIONS/DEPTH", nsmgr),
+                    CountryOfOrigin = default(CountryCodes).FromString(XmlUtils.nodeAsString(logisticDetailsNode, "./bmecat:COUNTRY_OF_ORIGIN", nsmgr)),
+                    CustomsTariffNumber = XmlUtils.nodesAsStrings(logisticDetailsNode, "./bmecat:CUSTOMS_TARIFF_NUMBER", nsmgr),
+                    Volume = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./bmecat:PRODUCT_DIMENSIONS/bmecat:VOLUME", nsmgr),
+                    Weight = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./bmecat:PRODUCT_DIMENSIONS/bmecat:WEIGHT", nsmgr),
+                    Length = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./bmecat:PRODUCT_DIMENSIONS/bmecat:LENGTH", nsmgr),
+                    Width = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./bmecat:PRODUCT_DIMENSIONS/bmecat:WIDTH", nsmgr),
+                    Depth = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./bmecat:PRODUCT_DIMENSIONS/bmecat:DEPTH", nsmgr),
                 };
             }
 
-            foreach(XmlNode referenceNode in productNode.SelectNodes("./ARTICLE_REFERENCE", nsmgr))
+            foreach(XmlNode referenceNode in productNode.SelectNodes("./bmecat:ARTICLE_REFERENCE", nsmgr))
             {
                 product.References.Add(new Reference()
                 {
                     Type = default(ReferenceTypes).FromString(XmlUtils.AttributeText(referenceNode, "type")),
-                    IdTo = XmlUtils.nodeAsString(referenceNode, "./ART_ID_TO", nsmgr)
+                    IdTo = XmlUtils.nodeAsString(referenceNode, "./bmecat:ART_ID_TO", nsmgr)
                 });
             }
 
-            XmlNode extensionNode = XmlUtils.SelectSingleNode(productNode, "./USER_DEFINED_EXTENSIONS", nsmgr);
+            XmlNode extensionNode = XmlUtils.SelectSingleNode(productNode, "./bmecat:USER_DEFINED_EXTENSIONS", nsmgr);
             if (extensionNode != null)
             {
                 if (extensionNode.InnerXml.Contains(".EDXF."))
@@ -373,37 +400,37 @@ namespace BMECat.net
         {
             Party p = new Party()
             {
-                Name2 = XmlUtils.nodeAsString(addressNode, "./NAME2"),
-                Name3 = XmlUtils.nodeAsString(addressNode, "./NAME2"),
-                Department = XmlUtils.nodeAsString(addressNode, "./DEPARTMENT"),
-                ContactName = XmlUtils.nodeAsString(addressNode, "./CONTACT"),
-                Street = XmlUtils.nodeAsString(addressNode, "./STREET"),
-                Zip = XmlUtils.nodeAsString(addressNode, "./ZIP"),
-                BoxNo = XmlUtils.nodeAsString(addressNode, "./BOXNO"),
-                ZipBox = XmlUtils.nodeAsString(addressNode, "./ZIPBOX"),
-                City = XmlUtils.nodeAsString(addressNode, "./CITY"),
-                State = XmlUtils.nodeAsString(addressNode, "./STATE"),
-                Country = XmlUtils.nodeAsString(addressNode, "./COUNTRY"),
-                VATID = XmlUtils.nodeAsString(addressNode, "./VAT_ID"),
-                Phone = XmlUtils.nodeAsString(addressNode, "./PHONE"), // @todo phone is typed
-                Fax = XmlUtils.nodeAsString(addressNode, "./FAX") // @todo fax is typed
+                Name2 = XmlUtils.nodeAsString(addressNode, "./bmecat:NAME2"),
+                Name3 = XmlUtils.nodeAsString(addressNode, "./bmecat:NAME2"),
+                Department = XmlUtils.nodeAsString(addressNode, "./bmecat:DEPARTMENT"),
+                ContactName = XmlUtils.nodeAsString(addressNode, "./bmecat:CONTACT"),
+                Street = XmlUtils.nodeAsString(addressNode, "./bmecat:STREET"),
+                Zip = XmlUtils.nodeAsString(addressNode, "./bmecat:ZIP"),
+                BoxNo = XmlUtils.nodeAsString(addressNode, "./bmecat:BOXNO"),
+                ZipBox = XmlUtils.nodeAsString(addressNode, "./bmecat:ZIPBOX"),
+                City = XmlUtils.nodeAsString(addressNode, "./bmecat:CITY"),
+                State = XmlUtils.nodeAsString(addressNode, "./bmecat:STATE"),
+                Country = XmlUtils.nodeAsString(addressNode, "./bmecat:COUNTRY"),
+                VATID = XmlUtils.nodeAsString(addressNode, "./bmecat:VAT_ID"),
+                Phone = XmlUtils.nodeAsString(addressNode, "./bmecat:PHONE"), // @todo phone is typed
+                Fax = XmlUtils.nodeAsString(addressNode, "./bmecat:FAX") // @todo fax is typed
             };
 
-            foreach(XmlNode contactDetailNode in addressNode.SelectNodes("./CONTACT_DETAILS"))
+            foreach(XmlNode contactDetailNode in addressNode.SelectNodes("./bmecat:CONTACT_DETAILS"))
             {
                 p.ContactDetails.Add(new ContactDetails()
                 {
-                    Id = XmlUtils.nodeAsString(contactDetailNode, "./CONTACT_ID"),
-                    Name = XmlUtils.nodeAsString(contactDetailNode, "./CONTACT_NAME"),
-                    FirstName = XmlUtils.nodeAsString(contactDetailNode, "./FIRST_NAME"),
-                    Title = XmlUtils.nodeAsString(contactDetailNode, "./TITLE"),
-                    AcademicTitle = XmlUtils.nodeAsString(contactDetailNode, "./ACADEMIC_TITLE"),
-                    ContactRole = XmlUtils.nodeAsString(contactDetailNode, "./CONTACT_ROLE"), // @todo role is typed
-                    ContactDescription = XmlUtils.nodeAsString(contactDetailNode, "./CONTACT_DESCR"),
-                    Phone = XmlUtils.nodesAsStrings(contactDetailNode, "./PHONE"), // @todo phone is typed
-                    Fax = XmlUtils.nodesAsStrings(contactDetailNode, "./FAX"), // @todo fax is typed
-                    URL = XmlUtils.nodeAsString(contactDetailNode, "./URL"),
-                    Emails = XmlUtils.nodeAsString(contactDetailNode, "./EMAILS") // @todo find out if this is a list in reality 
+                    Id = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:CONTACT_ID"),
+                    Name = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:CONTACT_NAME"),
+                    FirstName = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:FIRST_NAME"),
+                    Title = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:TITLE"),
+                    AcademicTitle = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:ACADEMIC_TITLE"),
+                    ContactRole = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:CONTACT_ROLE"), // @todo role is typed
+                    ContactDescription = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:CONTACT_DESCR"),
+                    Phone = XmlUtils.nodesAsStrings(contactDetailNode, "./bmecat:PHONE"), // @todo phone is typed
+                    Fax = XmlUtils.nodesAsStrings(contactDetailNode, "./bmecat:FAX"), // @todo fax is typed
+                    URL = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:URL"),
+                    Emails = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:EMAILS") // @todo find out if this is a list in reality 
                 });
             }
 
@@ -437,60 +464,60 @@ namespace BMECat.net
         {
             EDXF retval = new EDXF()
             {
-                ManufacturerAcronym = XmlUtils.nodeAsString(extensionNode, "./UDX.EDXF.MANUFACTURER_ACRONYM", nsmgr),
-                ManufacturerDiscountGroups = XmlUtils.nodesAsStrings(extensionNode, "./UDX.EDXF.DISCOUNT_GROUP/UDX.EDXF.DISCOUNT_GROUP_MANUFACTURER", nsmgr),
-                SupplierDiscountGroups = XmlUtils.nodesAsStrings(extensionNode, "./UDX.EDXF.DISCOUNT_GROUP/UDX.EDXF.DISCOUNT_GROUP_SUPPLIER", nsmgr),
-                ProductSeries = XmlUtils.nodesAsStrings(extensionNode, "./UDX.EDXF.PRODUCT_SERIES", nsmgr),
-                ValidFrom = XmlUtils.nodeAsDateTime(extensionNode, "./UDX.EDXF.VALID_FROM", nsmgr)
+                ManufacturerAcronym = XmlUtils.nodeAsString(extensionNode, "./bmecat:UDX.EDXF.MANUFACTURER_ACRONYM", nsmgr),
+                ManufacturerDiscountGroups = XmlUtils.nodesAsStrings(extensionNode, "./bmecat:UDX.EDXF.DISCOUNT_GROUP/bmecat:UDX.EDXF.DISCOUNT_GROUP_MANUFACTURER", nsmgr),
+                SupplierDiscountGroups = XmlUtils.nodesAsStrings(extensionNode, "./bmecat:UDX.EDXF.DISCOUNT_GROUP/bmecat:UDX.EDXF.DISCOUNT_GROUP_SUPPLIER", nsmgr),
+                ProductSeries = XmlUtils.nodesAsStrings(extensionNode, "./bmecat:UDX.EDXF.PRODUCT_SERIES", nsmgr),
+                ValidFrom = XmlUtils.nodeAsDateTime(extensionNode, "./bmecat:UDX.EDXF.VALID_FROM", nsmgr)
             };
 
-            foreach (XmlNode packagingUnitNode in XmlUtils.SelectNodes(extensionNode, "./UDX.EDXF.PACKING_UNITS/UDX.EDXF.PACKING_UNIT", nsmgr))
+            foreach (XmlNode packagingUnitNode in XmlUtils.SelectNodes(extensionNode, "./bmecat:UDX.EDXF.PACKING_UNITS/bmecat:UDX.EDXF.PACKING_UNIT", nsmgr))
             {
                 PackagingUnit pu = new PackagingUnit()
                 {
-                    QuantityMin = XmlUtils.nodeAsInt(packagingUnitNode, "./UDX.EDXF.QUANTITY_MIN", nsmgr),
-                    QuantityMax = XmlUtils.nodeAsInt(packagingUnitNode, "./UDX.EDXF.QUANTITY_MAX", nsmgr),
-                    PackagingUnitCode = XmlUtils.nodeAsString(packagingUnitNode, "./UDX.EDXF.PACKING_UNIT_CODE", nsmgr),
-                    Weight = XmlUtils.nodeAsDecimal(packagingUnitNode, "./UDX.EDXF.WEIGHT", nsmgr),
-                    Length = XmlUtils.nodeAsDecimal(packagingUnitNode, "./UDX.EDXF.LENGTH", nsmgr),
-                    Width = XmlUtils.nodeAsDecimal(packagingUnitNode, "./UDX.EDXF.WIDTH", nsmgr),
-                    Depth = XmlUtils.nodeAsDecimal(packagingUnitNode, "./UDX.EDXF.DEPTH", nsmgr),
-                    GTIN = XmlUtils.nodeAsString(packagingUnitNode, "./UDX.EDXF.GTIN", nsmgr)
+                    QuantityMin = XmlUtils.nodeAsInt(packagingUnitNode, "./bmecat:UDX.EDXF.QUANTITY_MIN", nsmgr),
+                    QuantityMax = XmlUtils.nodeAsInt(packagingUnitNode, "./bmecat:UDX.EDXF.QUANTITY_MAX", nsmgr),
+                    PackagingUnitCode = XmlUtils.nodeAsString(packagingUnitNode, "./bmecat:UDX.EDXF.PACKING_UNIT_CODE", nsmgr),
+                    Weight = XmlUtils.nodeAsDecimal(packagingUnitNode, "./bmecat:UDX.EDXF.WEIGHT", nsmgr),
+                    Length = XmlUtils.nodeAsDecimal(packagingUnitNode, "./bmecat:UDX.EDXF.LENGTH", nsmgr),
+                    Width = XmlUtils.nodeAsDecimal(packagingUnitNode, "./bmecat:UDX.EDXF.WIDTH", nsmgr),
+                    Depth = XmlUtils.nodeAsDecimal(packagingUnitNode, "./bmecat:UDX.EDXF.DEPTH", nsmgr),
+                    GTIN = XmlUtils.nodeAsString(packagingUnitNode, "./bmecat:UDX.EDXF.GTIN", nsmgr)
                 };
 
                 retval.PackagingUnits.Add(pu);
             }
 
-            XmlNode productLogisticsDetailsNode = XmlUtils.SelectSingleNode(extensionNode, "./UDX.EDXF.PRODUCT_LOGISTIC_DETAILS", nsmgr);
+            XmlNode productLogisticsDetailsNode = XmlUtils.SelectSingleNode(extensionNode, "./bmecat:UDX.EDXF.PRODUCT_LOGISTIC_DETAILS", nsmgr);
             if (productLogisticsDetailsNode != null)
             {
                 retval.ProductLogisticsDetails = new ProductLogisticsDetails()
                 {
-                    NetWeight = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./UDX.EDXF.NETWEIGHT", nsmgr),
-                    NetLength = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./UDX.EDXF.NETLENGTH", nsmgr),
-                    NetWidth = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./UDX.EDXF.NETWIDTH", nsmgr),
-                    NetDepth = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./UDX.EDXF.NETDEPTH", nsmgr),
-                    NetDiameter = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./UDX.EDXF.NETDIAMETER", nsmgr),
-                    RegionOfOrigin = XmlUtils.nodeAsString(productLogisticsDetailsNode, "./UDX.EDXF.REGION_OF_ORIGIN", nsmgr)
+                    NetWeight = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./bmecat:UDX.EDXF.NETWEIGHT", nsmgr),
+                    NetLength = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./bmecat:UDX.EDXF.NETLENGTH", nsmgr),
+                    NetWidth = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./bmecat:UDX.EDXF.NETWIDTH", nsmgr),
+                    NetDepth = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./bmecat:UDX.EDXF.NETDEPTH", nsmgr),
+                    NetDiameter = XmlUtils.nodeAsDecimal(productLogisticsDetailsNode, "./bmecat:UDX.EDXF.NETDIAMETER", nsmgr),
+                    RegionOfOrigin = XmlUtils.nodeAsString(productLogisticsDetailsNode, "./bmecat:UDX.EDXF.REGION_OF_ORIGIN", nsmgr)
                 };
             }
 
-            foreach (XmlNode mimeNode in XmlUtils.SelectNodes(extensionNode, "./UDX.EDXF.MIME_INFO/UDX.EDXF.MIME", nsmgr))
+            foreach (XmlNode mimeNode in XmlUtils.SelectNodes(extensionNode, "./bmecat:UDX.EDXF.MIME_INFO/bmecat:UDX.EDXF.MIME", nsmgr))
             {
                 retval.MimeInfos.Add(new MimeInfo()
                 {
-                    Source = XmlUtils.nodeAsString(mimeNode, "./UDX.EDXF.MIME_SOURCE", nsmgr),
-                    Alt = XmlUtils.nodeAsString(mimeNode, "./UDX.EDXF.MIME_ALT", nsmgr),
-                    Description = XmlUtils.nodeAsString(mimeNode, "./UDX.EDXF.MIME_DESIGNATION", nsmgr),
-                    Filename = XmlUtils.nodeAsString(mimeNode, "./UDX.EDXF.MIME_FILENAME", nsmgr),
-                    Code = XmlUtils.nodeAsString(mimeNode, "./UDX.EDXF.MIME_CODE", nsmgr),
+                    Source = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_SOURCE", nsmgr),
+                    Alt = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_ALT", nsmgr),
+                    Description = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_DESIGNATION", nsmgr),
+                    Filename = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_FILENAME", nsmgr),
+                    Code = XmlUtils.nodeAsString(mimeNode, "./bmecat:UDX.EDXF.MIME_CODE", nsmgr),
                 });
             }
 
             retval.Reach = new Reach()
             {
-                Info = XmlUtils.nodeAsString(extensionNode, "./UDX.EDXF.REACH/UDX.EDXF.REACH.INFO", nsmgr),
-                ListDate = XmlUtils.nodeAsDateTime(extensionNode, "./UDX.EDXF.REACH/UDX.EDXF.REACH.LISTDATE", nsmgr)
+                Info = XmlUtils.nodeAsString(extensionNode, "./bmecat:UDX.EDXF.REACH/bmecat:UDX.EDXF.REACH.INFO", nsmgr),
+                ListDate = XmlUtils.nodeAsDateTime(extensionNode, "./bmecat:UDX.EDXF.REACH/bmecat:UDX.EDXF.REACH.LISTDATE", nsmgr)
             };
 
             return retval;
