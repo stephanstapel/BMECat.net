@@ -5,7 +5,7 @@
     <Authors>Stephan Stapel, stephan@s2-industries.com</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/stephanstapel/BMECat.net</PackageProjectUrl>	
-    <Version>4.3.0</Version>
+    <Version>4.4.0</Version>
     <Copyright>Stephan Stapel, s2 industries, 2023</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/stephanstapel/BMECat.net</RepositoryUrl>
@@ -14,7 +14,7 @@
     <Description>BMECat.net is a .net open source library that allows you to read and write BMEcat descriptions would be a software component that provides developers with a set of tools and functionalities to manipulate BMEcat files programmatically. This library would enable software applications to easily integrate BMEcat support, allowing for the efficient exchange of product information between different systems and partners. Developers could use this library to parse, create, and modify BMEcat documents, accessing product data in a standardized and structured way. Overall, this library would simplify the development of software applications that rely on BMEcat for product information exchange.</Description>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-	<FileVersion>4.3.0.0</FileVersion>
+	<FileVersion>4.4.0.0</FileVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AssemblyName>s2industries.BMECat.net</AssemblyName>
     <AssemblyOriginatorKeyFile>BMECat.net.snk</AssemblyOriginatorKeyFile>
