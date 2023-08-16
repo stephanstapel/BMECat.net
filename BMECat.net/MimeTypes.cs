@@ -10,6 +10,7 @@ namespace BMECat.net
         ImageJpeg,
         ImageTiff,
         ImageGif,
+        ImagePng,
         ApplicationPdf,
         TextHtml,
         Url,
@@ -25,9 +26,11 @@ namespace BMECat.net
             { "image/gif", MimeTypes.ImageGif },
             { "image/tif", MimeTypes.ImageTiff },
             { "image/tiff", MimeTypes.ImageTiff },
+            { "image/png", MimeTypes.ImagePng },
             { "application/pdf", MimeTypes.ApplicationPdf },
             { "text/html", MimeTypes.TextHtml },
             { "video/url", MimeTypes.VideoUrl },
+            { "video/ulr", MimeTypes.VideoUrl }, // sometime we find this typo in real-life data!
             { "url", MimeTypes.Url },
         };
 
