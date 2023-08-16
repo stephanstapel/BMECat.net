@@ -41,7 +41,8 @@ namespace BMECat.net
             }
 
             // make sure that the root element contains xmlns elements to indicate which namespace to use
-            MemoryStream convertedStream = new MemoryStream();
+            string tempPath = "";
+            Stream convertedStream = new MemoryStream();
             byte[] firstPartOfBuffer = new byte[1024];
             inputStream.Read(firstPartOfBuffer, 0, 1024);
             string firstPartString = System.Text.Encoding.UTF8.GetString(firstPartOfBuffer);
@@ -59,8 +60,24 @@ namespace BMECat.net
                 inputStream.Position = 0;
             }
 
-            inputStream.CopyTo(convertedStream);
-            convertedStream.Position = 0;
+            if (inputStream.Length > BMECatConstants.LargeFileSizeLimit)
+            {
+                tempPath = System.IO.Path.GetTempFileName();
+                FileStream fs = System.IO.File.OpenWrite(tempPath);
+                convertedStream.CopyTo(fs);
+                inputStream.CopyTo(fs);                
+                fs.Flush();
+                fs.Dispose();
+                fs = null;
+
+                convertedStream = new FileStream(tempPath, FileMode.Open, FileAccess.Read);
+            }
+            else
+            {
+                inputStream.CopyTo(convertedStream);
+                convertedStream.Position = 0;
+            }
+
             XmlDocument doc = new XmlDocument();
             doc.Load(convertedStream);
 
@@ -187,6 +204,27 @@ namespace BMECat.net
                 if (_mappingsMap.ContainsKey(p.No))
                 {
                     p.ProductCatalogGroupMappings = _mappingsMap[p.No];
+                }
+            }
+
+            Task.WaitAll();
+
+            if (!String.IsNullOrEmpty(tempPath))
+            {
+                convertedStream.Close();
+                convertedStream.Dispose();
+                convertedStream = null;
+
+                try
+                {
+                    System.IO.File.Delete(tempPath);
+                }
+                catch (Exception ex)
+                {
+                    if ((extensions != null) && (extensions.LogService != null))
+                    {
+                        extensions.LogService.Error($"Could not delete temporary BMECat file {tempPath}. Error message: {ex.ToString()}");
+                    }
                 }
             }
 
