@@ -15,6 +15,14 @@ Core features:
 
 The library has a sister library (https://github.com/stephanstapel/OpenTrans.net) which allows to process order files.
 
+# Sponsoring
+Implementing and maintaining this library is a lot of hard work. I'm doing this in my spare time, there is no company behind developing BMECat.net. Support me in this work and help making this library better:
+
+[:heart: Sponsor me on github](https://github.com/sponsors/stephanstapel)
+
+In particular, I am searching for sponsors for:
+
+* Comprehensive write support
 
 # License
 Subject to the Apache license http://www.apache.org/licenses/LICENSE-2.0.html
