@@ -47,7 +47,7 @@ namespace BMECat.net
             inputStream.Read(firstPartOfBuffer, 0, 1024);
             string firstPartString = System.Text.Encoding.UTF8.GetString(firstPartOfBuffer);
 
-            if (!firstPartString.Contains("xmlns"))
+            if (!firstPartString.Contains("xmlns="))
             {
                 string pattern = "<BMECAT.*?>";
                 string replacement = @"<BMECAT xmlns=""http://www.bmecat.org/bmecat:bmecat/bmecat:1.2/bmecat:bmecat_new_catalog"" version=""1.2"">";
