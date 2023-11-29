@@ -71,6 +71,18 @@ namespace BMECat.net
                     version = BMECatVersion.Version2005;
                 }
             }
+            else
+            {
+                Regex fallbackRegex = new Regex("<BMECAT(.*?)>");
+                Match fallbackMatch = fallbackRegex.Match(xmlHeading);
+                if (fallbackMatch.Success && fallbackMatch.Groups.Count > 1)
+                {
+                    if (fallbackMatch.Groups[1].Value.Contains("bmecat/2005"))
+                    {
+                        version = BMECatVersion.Version2005;
+                    }
+                }
+            }
             
             switch (version)
             {
