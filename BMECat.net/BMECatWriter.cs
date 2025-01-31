@@ -149,7 +149,7 @@ namespace BMECat.net
                         Writer.WriteElementString("PRICE_AMOUNT", price.Amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
                         Writer.WriteElementString("PRICE_CURRENCY", price.Currency.ToString());
                         Writer.WriteElementString("TAX", price.Tax.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
-                        Writer.WriteElementString("LOWER_BOUND", price.Tax.ToString());
+                        Writer.WriteElementString("LOWER_BOUND", price.LowerBound.ToString());
                         Writer.WriteEndElement(); // !PRODUCT_PRICE
                     }
                     Writer.WriteEndElement(); // !PRODUCT_PRICE_DETAILS
