@@ -407,6 +407,23 @@ namespace BMECat.net
                     Depth = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./bmecat:PRODUCT_DIMENSIONS/bmecat:DEPTH", nsmgr),
                 };
             }
+            else
+            {
+                logisticDetailsNode = productNode.SelectSingleNode("./bmecat:ARTICLE_LOGISTIC_DETAILS", nsmgr);
+                if (logisticDetailsNode != null)
+                {
+                    product.LogisticsDetails = new LogisticsDetails()
+                    {
+                        CountryOfOrigin = default(CountryCodes).FromString(XmlUtils.nodeAsString(logisticDetailsNode, "./bmecat:COUNTRY_OF_ORIGIN", nsmgr)),
+                        CustomsTariffNumber = XmlUtils.nodesAsStrings(logisticDetailsNode, "./bmecat:CUSTOMS_TARIFF_NUMBER", nsmgr),
+                        Volume = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./bmecat:ARTICLE_DIMENSIONS/bmecat:VOLUME", nsmgr),
+                        Weight = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./bmecat:ARTICLE_DIMENSIONS/bmecat:WEIGHT", nsmgr),
+                        Length = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./bmecat:ARTICLE_DIMENSIONS/bmecat:LENGTH", nsmgr),
+                        Width = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./bmecat:ARTICLE_DIMENSIONS/bmecat:WIDTH", nsmgr),
+                        Depth = XmlUtils.nodeAsDecimal(logisticDetailsNode, "./bmecat:ARTICLE_DIMENSIONS/bmecat:DEPTH", nsmgr),
+                    };
+                }
+            }
 
             foreach(XmlNode referenceNode in productNode.SelectNodes("./bmecat:ARTICLE_REFERENCE", nsmgr))
             {
