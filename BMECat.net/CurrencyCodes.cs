@@ -1235,7 +1235,6 @@ namespace BMECat.net
     }
 
 
-
     internal static class CurrencyCodesExtensions
     {
         public static CurrencyCodes FromString(this CurrencyCodes _c, string s)
