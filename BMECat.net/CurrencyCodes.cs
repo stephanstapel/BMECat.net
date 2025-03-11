@@ -616,13 +616,6 @@ namespace BMECat.net
         IDR = 360,
 
         /// <summary>
-        /// SDR (Special Drawing Right) (XDR)
-        /// Used in:
-        /// - INTERNATIONAL MONETARY FUND (IMF) 
-        /// </summary>
-        XDR = 960,
-
-        /// <summary>
         /// Iranian Rial (IRR)
         /// Used in:
         /// - IRAN (ISLAMIC REPUBLIC OF)
@@ -813,13 +806,6 @@ namespace BMECat.net
         /// - MAURITIUS
         /// </summary>
         MUR = 480,
-
-        /// <summary>
-        /// ADB Unit of Account (XUA)
-        /// Used in:
-        /// - MEMBER COUNTRIES OF THE AFRICAN DEVELOPMENT BANK GROUP
-        /// </summary>
-        XUA = 965,
 
         /// <summary>
         /// Mexican Peso (MXN)
@@ -1031,13 +1017,6 @@ namespace BMECat.net
         /// - SINGAPORE
         /// </summary>
         SGD = 702,
-
-        /// <summary>
-        /// Sucre (XSU)
-        /// Used in:
-        /// - "SISTEMA UNITARIO DE COMPENSACION REGIONAL DE PAGOS ""SUCRE"""
-        /// </summary>
-        XSU = 994,
 
         /// <summary>
         /// Solomon Islands Dollar (SBD)
@@ -1254,6 +1233,7 @@ namespace BMECat.net
         /// </summary>
         Unknown = 0,
     }
+
 
 
     internal static class CurrencyCodesExtensions
