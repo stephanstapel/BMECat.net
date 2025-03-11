@@ -23,6 +23,8 @@ namespace BMECat.net
         private static Dictionary<string, MimeTypes> _mimeTypes = new Dictionary<string, MimeTypes>()
         {
             { "image/jpeg", MimeTypes.ImageJpeg },
+            { "image/jpg", MimeTypes.ImageJpeg },
+            { "images/jpg", MimeTypes.ImageJpeg },
             { "image/gif", MimeTypes.ImageGif },
             { "image/tif", MimeTypes.ImageTiff },
             { "image/tiff", MimeTypes.ImageTiff },
