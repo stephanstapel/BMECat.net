@@ -57,9 +57,9 @@ namespace BMECat.net
             _writeOptionalElementString(Writer, "GENERATOR_INFO", this.Catalog.GeneratorInfo);
 
             Writer.WriteStartElement("CATALOG");
-            foreach (LanguageCodes _language in this.Catalog.Languages)
+            foreach (LanguageCodes language in this.Catalog.Languages)
             {
-                Writer.WriteElementString("LANGUAGE", _language.EnumToString());
+                Writer.WriteElementString("LANGUAGE", language.EnumToString());
             }
             Writer.WriteElementString("CATALOG_ID", this.Catalog.CatalogId); // Pflichtfeld
             Writer.WriteElementString("CATALOG_VERSION", this.Catalog.CatalogVersion); // Pflichtfeld

@@ -240,31 +240,31 @@ namespace BMECat.net
                              });
 
             // -- map catalog group assignments to products
-            Dictionary<string, List<ProductCatalogGroupMapping>> _mappingsMap = new Dictionary<string, List<ProductCatalogGroupMapping>>();
+            Dictionary<string, List<ProductCatalogGroupMapping>> mappingsMap = new Dictionary<string, List<ProductCatalogGroupMapping>>();
 
             // according to the specifiction, ARTICLE_TO_CATALOGGROUP_MAP is still possible with BMECat 2005
             XmlNodeList productToCatalogGroupMapNodes = doc.DocumentElement.SelectNodes("/bmecat:BMECAT/bmecat:T_NEW_CATALOG/bmecat:ARTICLE_TO_CATALOGGROUP_MAP", nsmgr);
-            string IdSelector = "./bmecat:ART_ID";
+            string idSelector = "./bmecat:ART_ID";
             string mapOrderSelector = "./bmecat:ARTICLE_TO_CATALOGGROUP_MAP_ORDER";
             if ((productToCatalogGroupMapNodes == null) || (productToCatalogGroupMapNodes.Count == 0))
             {
                 productToCatalogGroupMapNodes = doc.DocumentElement.SelectNodes("/bmecat:BMECAT/bmecat:T_NEW_CATALOG/bmecat:PRODUCT_TO_CATALOGGROUP_MAP", nsmgr);
-                IdSelector = "./bmecat:PROD_ID";
+                idSelector = "./bmecat:PROD_ID";
                 mapOrderSelector = "./bmecat:PRODUCT_TO_CATALOGGROUP_MAP_ORDER";
             }
 
             Parallel.ForEach(productToCatalogGroupMapNodes.Cast<XmlNode>(), /* new ParallelOptions() {  MaxDegreeOfParallelism = 1 }, */
             async (XmlNode productToCatalogGroupMapNode) =>
             {
-                string productId = XmlUtils.nodeAsString(productToCatalogGroupMapNode, IdSelector, nsmgr);
+                string productId = XmlUtils.nodeAsString(productToCatalogGroupMapNode, idSelector, nsmgr);
 
                 mutex.WaitOne();
-                if (!_mappingsMap.ContainsKey(productId))
+                if (!mappingsMap.ContainsKey(productId))
                 {
-                    _mappingsMap.Add(productId, new List<ProductCatalogGroupMapping>());
+                    mappingsMap.Add(productId, new List<ProductCatalogGroupMapping>());
                 }
 
-                _mappingsMap[productId].Add(new ProductCatalogGroupMapping()
+                mappingsMap[productId].Add(new ProductCatalogGroupMapping()
                 {
                     /**
                      * @todo read optional SUPPLIER_IDREF sub structure
@@ -278,9 +278,9 @@ namespace BMECat.net
 
             foreach (Product p in retval.Products)
             {
-                if (_mappingsMap.ContainsKey(p.No))
+                if (mappingsMap.ContainsKey(p.No))
                 {
-                    p.ProductCatalogGroupMappings = _mappingsMap[p.No];
+                    p.ProductCatalogGroupMappings = mappingsMap[p.No];
                 }
             }
 
@@ -338,7 +338,7 @@ namespace BMECat.net
 
         private static Product _ReadProduct(XmlNode productNode, XmlNamespaceManager nsmgr, BMECatExtensions extensions)
         {
-            string _productMode = XmlUtils.nodeAsString(productNode, "@mode", nsmgr);
+            string productMode = XmlUtils.nodeAsString(productNode, "@mode", nsmgr);
             Product product = new Product()
             {
                 No = XmlUtils.nodeAsString(productNode, "./bmecat:SUPPLIER_PID", nsmgr),
