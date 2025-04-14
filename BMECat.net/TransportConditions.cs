@@ -20,7 +20,7 @@ namespace BMECat.net
 {
     public class TransportConditions
     {
-        public IncotermCodes Incoterm { get; set; }
+        public IncotermCodes? Incoterm { get; set; }
         /// <summary>
         /// Übergang der Ware von Anbieter zu Nachfrager oder umgekehrt. Abhängig von INCOTERM.
         /// 

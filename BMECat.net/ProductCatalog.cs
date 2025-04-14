@@ -64,7 +64,7 @@ namespace BMECat.net
         public Party Supplier { get; set; }
         public TransportConditions Transport { get; set; }
         public List<Product> Products { get; set; }
-        public CurrencyCodes Currency { get; set; }
+        public CurrencyCodes? Currency { get; set; }
         public Agreement Agreement { get; set; }
         public List<CatalogStructure> CatalogStructures { get; set; } = new List<CatalogStructure>();
 

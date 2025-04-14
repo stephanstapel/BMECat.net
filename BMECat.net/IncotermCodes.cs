@@ -78,31 +78,32 @@ namespace BMECat.net
         /// <summary>
         /// COST, INSURANCE AND FREIGHT 
         /// </summary>
-        CIF,
-
-        Unknown
+        CIF
     }
 
 
 
     public static class IncotermCodesExtensions
     {
-        public static IncotermCodes FromString(this IncotermCodes _c, string s)
+        public static IncotermCodes? FromString(this IncotermCodes _c, string s)
         {
-            try
+            if (Enum.TryParse(s, true, out IncotermCodes result))
             {
-                return (IncotermCodes)Enum.Parse(typeof(IncotermCodes), s);
+                return result;
             }
-            catch
-            {
-                return IncotermCodes.Unknown;
-            }
+
+            return null;            
         } // !FromString()
 
 
-        public static string EnumToString(this IncotermCodes c)
+        public static string EnumToString(this IncotermCodes? c)
         {
-            return c.ToString("g");
+            if (!c.HasValue)
+            {
+                return "";
+            }
+
+            return c.Value.ToString("g");
         } // !ToString()
     }
 }

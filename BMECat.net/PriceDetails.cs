@@ -24,9 +24,9 @@ namespace BMECat.net
 {
     public class ProductPrice
     {
-        public PriceTypes PriceType { get; set; } = PriceTypes.Unknown;
+        public PriceTypes? PriceType { get; set; } = null;
         public decimal Amount { get; set; }
-        public CurrencyCodes Currency { get; set; }
+        public CurrencyCodes? Currency { get; set; } = null;
         public decimal Tax { get; set; }
         public int? LowerBound { get; set; }
     }

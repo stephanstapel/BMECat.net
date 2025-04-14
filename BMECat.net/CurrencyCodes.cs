@@ -81,11 +81,6 @@ namespace BMECat.net
     public enum CurrencyCodes
     {
         /// <summary>
-        /// Fallback value
-        /// </summary>
-        Unknown = 0,
-
-        /// <summary>
         /// Country: AFGHANISTAN
         /// Currency: Afghani
         /// </summary>
@@ -1607,22 +1602,24 @@ namespace BMECat.net
 
     internal static class CurrencyCodesExtensions
     {
-        public static CurrencyCodes FromString(this CurrencyCodes _c, string s)
+        public static CurrencyCodes? FromString(this CurrencyCodes _c, string s)
         {
-            try
+            if (Enum.TryParse(s, true, out CurrencyCodes c))
             {
-                return (CurrencyCodes)Enum.Parse(typeof(CurrencyCodes), s);
+                return c;
             }
-            catch
-            {
-                return CurrencyCodes.Unknown;
-            }
+            return null;
         } // !FromString()
 
 
-        public static string EnumToString(this CurrencyCodes c)
+        public static string EnumToString(this CurrencyCodes? c)
         {
-            return c.ToString("g");
+            if (c == null)
+            {
+                return string.Empty;
+            }
+
+            return c.Value.ToString("g");
         } // !ToString()
     }
 }

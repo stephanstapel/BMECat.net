@@ -24,8 +24,6 @@ namespace BMECat.net
 {
     public enum PriceTypes
     {
-        Unknown = 0,
-
         /// <summary>
         /// (Einkaufs-)Listenpreis ohne Umsatzsteuer
         /// </summary>
@@ -56,7 +54,7 @@ namespace BMECat.net
 
     internal static class PriceTypesExtensions
     {
-        public static PriceTypes FromString(this PriceTypes _, string s)
+        public static PriceTypes? FromString(this PriceTypes _, string s)
         {
             s = s.ToLower().Trim();
             switch (s)
@@ -67,14 +65,19 @@ namespace BMECat.net
                 case "gros_list": return PriceTypes.GrosList;
                 case "net_customer_exp": return PriceTypes.NetCustomerExpress;
 
-                default: return PriceTypes.Unknown;
+                default: return null;
             }
         } // !FromString()
 
 
-        public static string EnumToString(this PriceTypes c)
+        public static string EnumToString(this PriceTypes? c)
         {
-            switch (c)
+            if (!c.HasValue)
+            {
+                return String.Empty;
+            }
+
+            switch (c.Value)
             {
                 case PriceTypes.NetList: return "net_list";
                 case PriceTypes.NetCustomer: return "net_customer";
@@ -82,7 +85,7 @@ namespace BMECat.net
                 case PriceTypes.GrosList: return "gros_list";
                 case PriceTypes.NetCustomerExpress: return "net_customer_exp";
 
-                default: return "";
+                default: return String.Empty;
             }
         } // !ToString()
     }

@@ -24,7 +24,6 @@ namespace BMECat.net
 {
     public enum CatalogStructureTypes
     {
-        Unknown,
         Leaf,
         Node
     }
@@ -32,14 +31,14 @@ namespace BMECat.net
 
     internal static class CatalogStructureTypesExtensions
     {
-        public static CatalogStructureTypes FromString(this CatalogStructureTypes _, string s)
+        public static CatalogStructureTypes? FromString(this CatalogStructureTypes _, string s)
         {
             s = s.ToLower().Trim();
             switch (s)
             {
                 case "leaf": return CatalogStructureTypes.Leaf;
                 case "node": return CatalogStructureTypes.Node;
-                default: return CatalogStructureTypes.Unknown;
+                default: return null;
             }
         } // !FromString()
 

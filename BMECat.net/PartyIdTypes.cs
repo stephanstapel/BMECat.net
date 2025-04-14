@@ -24,7 +24,6 @@ namespace BMECat.net
 {
     public enum PartyIdTypes
     {
-        Unknown = 0,
         BuyerSpecific,
         SupplierSpecific,
         DUNS,
@@ -34,7 +33,7 @@ namespace BMECat.net
 
     internal static class PartyIdTypesExtensions
     {
-        public static PartyIdTypes FromString(this PartyIdTypes _, string s)
+        public static PartyIdTypes? FromString(this PartyIdTypes _, string s)
         {
             s = s.ToLower().Trim();
             switch (s)
@@ -44,7 +43,7 @@ namespace BMECat.net
                 case "gln": return PartyIdTypes.GLN;
                 case "supplier_specific": return PartyIdTypes.SupplierSpecific;
 
-                default: return PartyIdTypes.Unknown;
+                default: return null;
             }
         } // !FromString()
 

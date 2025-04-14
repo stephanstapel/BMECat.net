@@ -25,7 +25,7 @@ namespace BMECat.net
 {
     public class CatalogStructure
     {
-        public CatalogStructureTypes Type { get; set; }
+        public CatalogStructureTypes? Type { get; set; }
         public List<MimeInfo> MimeInfos { get; set; } = new List<MimeInfo>();
         public string GroupId { get; set; }
         public string GroupName { get; set; }
