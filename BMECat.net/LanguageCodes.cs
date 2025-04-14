@@ -30,24 +30,20 @@ namespace BMECat.net
         /// <summary>
         /// Englisch
         /// </summary>
-        ENG,
-
-        Unknown
+        ENG
     }
 
 
     public static class LanguageCodesExtensions
     {
-        public static LanguageCodes FromString(this LanguageCodes _c, string s)
+        public static LanguageCodes? FromString(this LanguageCodes _c, string s)
         {
-            try
+            if (Enum.TryParse(s, true, out LanguageCodes result))
             {
-                return (LanguageCodes)Enum.Parse(typeof(LanguageCodes), s.ToUpper());
+                return result;
             }
-            catch
-            {
-                return LanguageCodes.Unknown;
-            }
+
+            return null;
         } // !FromString()
 
 

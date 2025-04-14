@@ -25,7 +25,7 @@ namespace BMECat.net
 {
     public class LogisticsDetails
     {
-        public CountryCodes CountryOfOrigin { get; set; }
+        public CountryCodes? CountryOfOrigin { get; set; }
         public decimal? Volume { get; set; }
         public decimal? Weight { get; set; }
         public decimal? Length { get; set; }

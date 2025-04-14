@@ -1556,14 +1556,7 @@ namespace BMECat.net
         /// special treatment required as enums
         /// don't like members starting with a number!
         /// </summary>
-        _1A = 999,
-
-        /// <summary>
-        /// Fall back for unsupported
-        /// Country Codes
-        /// Unknown = 0
-        /// </summary>
-        Unknown = 0
+        _1A = 999
     }
 
 
@@ -1577,7 +1570,7 @@ namespace BMECat.net
         private static ReaderWriterLockSlim _Lock = new ReaderWriterLockSlim();
 
 
-        public static CountryCodes FromString(this CountryCodes _c, string s)
+        public static CountryCodes? FromString(this CountryCodes _c, string s)
         {
             _Lock.EnterWriteLock();
             if (_Mapping == null)
@@ -1589,7 +1582,7 @@ namespace BMECat.net
             try
             {
                 _Lock.EnterReadLock();
-                CountryCodes retval = CountryCodes.Unknown;
+                CountryCodes? retval = null;
                 if (_Mapping.ContainsKey(s))
                 {
                     retval = _Mapping[s];
@@ -1599,7 +1592,7 @@ namespace BMECat.net
             }
             catch
             {
-                return CountryCodes.Unknown;
+                return null;
             }
         } // !FromString()
 

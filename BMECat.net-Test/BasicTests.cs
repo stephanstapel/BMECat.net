@@ -78,12 +78,12 @@ namespace BMECat.net_Test
         [TestMethod]
         public async Task RoundtripProductIdHandling_GTIN_only()
         {
-            string _id = System.Guid.NewGuid().ToString();
+            string testId = System.Guid.NewGuid().ToString();
 
             ProductCatalog catalog = _GenerateSimpleCatalog();
 
             catalog.Products.First().PIds.Clear();
-            catalog.Products.First().PIds.Add(new ProductId() { Type = ProductIdTypes.GTIN, Id = _id });
+            catalog.Products.First().PIds.Add(new ProductId() { Type = ProductIdTypes.GTIN, Id = testId });
 
             MemoryStream ms = new MemoryStream();
             catalog.Save(ms);
@@ -92,7 +92,7 @@ namespace BMECat.net_Test
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
             Assert.AreEqual(loadedCatalog.Products.First().PIds.Count, 1);
             Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Type, ProductIdTypes.GTIN);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, _id);
+            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, testId);
 
             Task.WaitAll();
         }
@@ -101,12 +101,12 @@ namespace BMECat.net_Test
         [TestMethod]
         public async Task RoundtripProductIdHandling_EAN_only()
         {
-            string _id = System.Guid.NewGuid().ToString();
+            string testId = System.Guid.NewGuid().ToString();
 
             ProductCatalog catalog = _GenerateSimpleCatalog();
 
             catalog.Products.First().PIds.Clear();
-            catalog.Products.First().PIds.Add(new ProductId() { Type = ProductIdTypes.EAN, Id = _id });
+            catalog.Products.First().PIds.Add(new ProductId() { Type = ProductIdTypes.EAN, Id = testId });
 
             MemoryStream ms = new MemoryStream();
             catalog.Save(ms);
@@ -115,7 +115,7 @@ namespace BMECat.net_Test
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
             Assert.AreEqual(loadedCatalog.Products.First().PIds.Count, 1);
             Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Type, ProductIdTypes.EAN);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, _id);
+            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, testId);
 
             Task.WaitAll();
         }
@@ -124,12 +124,12 @@ namespace BMECat.net_Test
         [TestMethod]
         public async Task RoundtripProductIdHandling_supplier_specific_only()
         {
-            string _id = System.Guid.NewGuid().ToString();
+            string testId = System.Guid.NewGuid().ToString();
 
             ProductCatalog catalog = _GenerateSimpleCatalog();
 
             catalog.Products.First().PIds.Clear();
-            catalog.Products.First().PIds.Add(new ProductId() { Type = ProductIdTypes.SupplierSpecific, Id = _id });
+            catalog.Products.First().PIds.Add(new ProductId() { Type = ProductIdTypes.SupplierSpecific, Id = testId });
 
             MemoryStream ms = new MemoryStream();
             catalog.Save(ms);
@@ -138,7 +138,7 @@ namespace BMECat.net_Test
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
             Assert.AreEqual(loadedCatalog.Products.First().PIds.Count, 1);
             Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Type, ProductIdTypes.SupplierSpecific);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, _id);
+            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, testId);
 
             Task.WaitAll();
         }
@@ -147,14 +147,14 @@ namespace BMECat.net_Test
         [TestMethod]
         public async Task RoundtripProductIdHandling_EAN_GTIN()
         {
-            string _id0 = System.Guid.NewGuid().ToString();
-            string _id1 = System.Guid.NewGuid().ToString();
+            string testId0 = System.Guid.NewGuid().ToString();
+            string testId1 = System.Guid.NewGuid().ToString();
 
             ProductCatalog catalog = _GenerateSimpleCatalog();
 
             catalog.Products.First().PIds.Clear();
-            catalog.Products.First().PIds.Add(new ProductId() { Type = ProductIdTypes.EAN, Id = _id0 });
-            catalog.Products.First().PIds.Add(new ProductId() { Type = ProductIdTypes.GTIN, Id = _id1 });
+            catalog.Products.First().PIds.Add(new ProductId() { Type = ProductIdTypes.EAN, Id = testId0 });
+            catalog.Products.First().PIds.Add(new ProductId() { Type = ProductIdTypes.GTIN, Id = testId1 });
 
             MemoryStream ms = new MemoryStream();
             catalog.Save(ms);
@@ -163,9 +163,9 @@ namespace BMECat.net_Test
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
             Assert.AreEqual(2, loadedCatalog.Products.First().PIds.Count);
             Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Type, ProductIdTypes.EAN);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, _id0);
+            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, testId0);
             Assert.AreEqual(loadedCatalog.Products.First().PIds[1].Type, ProductIdTypes.GTIN);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[1].Id, _id1);
+            Assert.AreEqual(loadedCatalog.Products.First().PIds[1].Id, testId1);
 
             Task.WaitAll();
         }

@@ -89,8 +89,11 @@ namespace BMECat.net
 
             foreach(XmlNode languageNode in XmlUtils.SelectNodes(doc, "/bmecat:BMECAT/bmecat:HEADER/bmecat:CATALOG/bmecat:LANGUAGE", nsmgr))
             {
-                LanguageCodes language = default(LanguageCodes).FromString(languageNode.InnerText);
-                retval.Languages.Add(language); 
+                LanguageCodes? language = default(LanguageCodes).FromString(languageNode.InnerText);
+                if (language.HasValue)
+                {
+                    retval.Languages.Add(language.Value);
+                }
             }
 
             retval.CatalogId = XmlUtils.nodeAsString(doc, "/bmecat:BMECAT/bmecat:HEADER/bmecat:CATALOG/bmecat:CATALOG_ID", nsmgr);
