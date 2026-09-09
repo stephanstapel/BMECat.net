@@ -144,7 +144,7 @@ namespace BMECat.net
 
             string temp = nodeAsString(node, xpath, nsmgr, "");
             int retval;
-            if (Int32.TryParse(temp, out retval))
+            if (Int32.TryParse(temp, NumberStyles.Integer, CultureInfo.InvariantCulture, out retval))
             {
                 return retval;
             }
@@ -164,14 +164,28 @@ namespace BMECat.net
 
             string temp = nodeAsString(node, xpath, nsmgr, "");
             decimal retval;
-            if (decimal.TryParse(temp, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out retval))
+
+            // xml notation, i.e. dot as decimal separator and no group separators at all.
+            // NumberStyles.Any must not be used here since it would interpret the decimal comma
+            // of a non conformant, localized document as group separator, e.g. 0,19 as 019
+            if (decimal.TryParse(temp, NumberStyles.Float, CultureInfo.InvariantCulture, out retval))
             {
                 return retval;
             }
-            else
+
+            // tolerate non conformant documents that were written with a decimal comma,
+            // e.g. 0,19 instead of 0.19. Values like 1,234 are ambiguous (0.19 style decimal comma
+            // or english group separator) and are hence rejected
+            string[] parts = temp.Split(',');
+            if ((parts.Length == 2) && (parts[1].Length != 3) && !temp.Contains("."))
             {
-                return defaultValue;
+                if (decimal.TryParse(temp.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out retval))
+                {
+                    return retval;
+                }
             }
+
+            return defaultValue;
         } // !nodeAsDecimal()
 
 

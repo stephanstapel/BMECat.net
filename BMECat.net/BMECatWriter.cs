@@ -121,7 +121,7 @@ namespace BMECat.net
                     _writeOptionalElementString(Writer, "EAN", eanPId.Id);
                 }
                 
-                _writeOptionalElementString(Writer, "STOCK", String.Format("{0}", product.Stock));
+                _writeOptionalElementString(Writer, "STOCK", product.Stock.HasValue ? product.Stock.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : null);
                 _writeOptionalElementString(Writer, "MANUFACTURER_PID", String.Format("{0}", product.ManufacturerPID));
                 _writeOptionalElementString(Writer, "MANUFACTURER_NAME", String.Format("{0}", product.ManufacturerName));
                 _writeOptionalElementString(Writer, "MANUFACTURER_TYPE_DESCR", String.Format("{0}", product.ManufacturerTypeDescription));
@@ -149,7 +149,7 @@ namespace BMECat.net
                         Writer.WriteElementString("PRICE_AMOUNT", price.Amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
                         Writer.WriteElementString("PRICE_CURRENCY", price.Currency.ToString());
                         Writer.WriteElementString("TAX", price.Tax.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
-                        Writer.WriteElementString("LOWER_BOUND", price.LowerBound.ToString());
+                        _writeOptionalElementString(Writer, "LOWER_BOUND", price.LowerBound.HasValue ? price.LowerBound.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : null);
                         Writer.WriteEndElement(); // !PRODUCT_PRICE
                     }
                     Writer.WriteEndElement(); // !PRODUCT_PRICE_DETAILS
@@ -202,41 +202,14 @@ namespace BMECat.net
             {
                 Writer.WriteAttributeString("type", typeAttribute);
             }
-            /*
-            Writer.WriteElementString("DATE", date.ToString("yyyy-dd-MM"));
-            Writer.WriteElementString("TIME", date.ToString("hh:mm"));
-            Writer.WriteElementString("TIMEZONE", date.ToString("zzz"));
-            */
-                if (date.HasValue)
+
+            if (date.HasValue)
             {
-                Writer.WriteString(date.Value.ToString("yyyy-MM-ddThh:mm:sszzz"));
+                // HH: 24 hour format, invariant culture: gregorian calendar and latin digits, independent from the machine the code runs on
+                Writer.WriteString(date.Value.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture));
             }
             Writer.WriteEndElement();
         } // !_writeDateTime()
-
-
-        private string _formatDecimal(double value, int numDecimals = 2)
-        {
-            return _formatDecimal((decimal)value, numDecimals);
-        } // !_formatDecimal()
-
-
-        private string _formatDecimal(float value, int numDecimals = 2)
-        {
-            return _formatDecimal((decimal)value, numDecimals);
-        } // !_formatDecimal()
-
-
-        private string _formatDecimal(decimal value, int numDecimals = 2)
-        {
-            string formatString = "0.";
-            for (int i = 0; i < numDecimals; i++)
-            {
-                formatString += "0";
-            }
-
-            return value.ToString(formatString).Replace(",", ".");
-        } // !_formatDecimal()
 
 
         private void _writeOptionalElementString(XmlTextWriter writer, string tagName, string value, Dictionary<string, string> attributes = null)
@@ -254,7 +227,7 @@ namespace BMECat.net
                 writer.WriteValue(value);
                 writer.WriteEndElement();                
             }
-        } // !_writeOptionalElementString
+        } // !_writeOptionalElementString()
 
 
         private void _writeOptionalElementString(XmlTextWriter writer, string tagName, QuantityCode value, BMECatExtensions extensions = null)
