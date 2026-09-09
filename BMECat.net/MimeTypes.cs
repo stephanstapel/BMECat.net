@@ -38,7 +38,7 @@ namespace BMECat.net
 
         public static MimeTypes FromString(this MimeTypes _, string s)
         {
-            s = s.ToLower().Trim();
+            s = s.ToLowerInvariant().Trim();
             if (_mimeTypes.ContainsKey(s))
             {
                 return _mimeTypes[s];

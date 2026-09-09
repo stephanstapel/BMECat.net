@@ -56,7 +56,7 @@ namespace BMECat.net
     {
         public static PriceTypes? FromString(this PriceTypes _, string s)
         {
-            s = s.ToLower().Trim();
+            s = s.ToLowerInvariant().Trim();
             switch (s)
             {
                 case "net_list": return PriceTypes.NetList;

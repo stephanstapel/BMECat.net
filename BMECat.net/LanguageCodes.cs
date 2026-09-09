@@ -49,7 +49,7 @@ namespace BMECat.net
 
         public static string EnumToString(this LanguageCodes c)
         {
-            return c.ToString("g").ToLower();
+            return c.ToString("g").ToLowerInvariant();
         } // !ToString()
     }
 }

@@ -173,10 +173,11 @@ namespace BMECat.net
 
         public async Task SaveAsync(ProductCatalog catalog, string filename, BMECatExtensions extensions = null)
         {
-            FileStream fs = new FileStream(filename, FileMode.Create, FileAccess.Write);
-            await SaveAsync(catalog, fs, extensions);
-            fs.Flush();
-            fs.Close();
+            using (FileStream fs = new FileStream(filename, FileMode.Create, FileAccess.Write))
+            {
+                await SaveAsync(catalog, fs, extensions);
+                fs.Flush();
+            }
         } // !SaveAsync()
 
 

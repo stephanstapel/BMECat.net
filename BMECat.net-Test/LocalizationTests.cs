@@ -30,6 +30,11 @@ namespace BMECat.net_Test
         /// </summary>
         private static readonly CultureInfo THAI = new CultureInfo("th-TH");
 
+        /// <summary>
+        /// Dotless lower case i, i.e. GTIN.ToLower() results in gtın instead of gtin
+        /// </summary>
+        private static readonly CultureInfo TURKISH = new CultureInfo("tr-TR");
+
 
         #region Writing numbers
         [TestMethod]
@@ -197,6 +202,40 @@ namespace BMECat.net_Test
             Assert.AreEqual(germanStock, americanStock);
         } // !StockIsReadIdenticallyAcrossCultures()
         #endregion // !Reading numbers
+
+
+        #region Reading enumerations
+        [TestMethod]
+        public void ProductIdTypeIsReadIdenticallyAcrossCultures()
+        {
+            ProductCatalog catalog = _GenerateCatalog();
+            catalog.Products.First().PIds.Clear();
+            catalog.Products.First().PIds.Add(new ProductId() { Type = ProductIdTypes.GTIN, Id = "0000000011" });
+
+            // upper case type attribute, as it is used by several catalog exports
+            string xml = _WriteCatalog(catalog).Replace("type=\"gtin\"", "type=\"GTIN\"");
+
+            ProductIdTypes turkishType = _RunWithCulture(TURKISH, () => _ReadCatalog(xml).Products.First().PIds.First().Type);
+            ProductIdTypes americanType = _RunWithCulture(AMERICAN, () => _ReadCatalog(xml).Products.First().PIds.First().Type);
+
+            Assert.AreEqual(ProductIdTypes.GTIN, americanType);
+            Assert.AreEqual(ProductIdTypes.GTIN, turkishType, "GTIN must not become gtın when lowercasing in the turkish culture");
+        } // !ProductIdTypeIsReadIdenticallyAcrossCultures()
+
+
+        [TestMethod]
+        public void PriceTypeIsReadIdenticallyAcrossCultures()
+        {
+            // upper case price type attribute, as it is used by several catalog exports
+            string xml = _WriteCatalog(_GenerateCatalog()).Replace("price_type=\"net_list\"", "price_type=\"NET_LIST\"");
+
+            PriceTypes? turkishType = _RunWithCulture(TURKISH, () => _ReadCatalog(xml).Products.First().Prices.First().PriceType);
+            PriceTypes? americanType = _RunWithCulture(AMERICAN, () => _ReadCatalog(xml).Products.First().Prices.First().PriceType);
+
+            Assert.AreEqual(PriceTypes.NetList, americanType);
+            Assert.AreEqual(PriceTypes.NetList, turkishType, "NET_LIST must not become net_lıst when lowercasing in the turkish culture");
+        } // !PriceTypeIsReadIdenticallyAcrossCultures()
+        #endregion // !Reading enumerations
 
 
         #region Reading dates

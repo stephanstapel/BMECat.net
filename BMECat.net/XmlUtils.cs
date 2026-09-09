@@ -64,7 +64,7 @@ namespace BMECat.net
             }
             else
             {
-                if ((value.Trim().ToLower() == "true") || (value.Trim() == "1"))
+                if ((value.Trim().ToLowerInvariant() == "true") || (value.Trim() == "1"))
                 {
                     return true;
                 }
@@ -99,10 +99,6 @@ namespace BMECat.net
             {
                 return defaultValue;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            };
         } // nodeAsString()
 
 
@@ -126,12 +122,6 @@ namespace BMECat.net
             {
                 return defaultValue;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            };
-
-            return defaultValue;
         } // nodesAsStrings()
 
 

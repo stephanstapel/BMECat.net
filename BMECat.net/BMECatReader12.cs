@@ -44,8 +44,8 @@ namespace BMECat.net
             string tempPath = "";
             Stream convertedStream = new MemoryStream();
             byte[] firstPartOfBuffer = new byte[1024];
-            inputStream.Read(firstPartOfBuffer, 0, 1024);
-            string firstPartString = System.Text.Encoding.UTF8.GetString(firstPartOfBuffer);
+            int bytesRead = StreamUtils.FillBuffer(inputStream, firstPartOfBuffer);
+            string firstPartString = System.Text.Encoding.UTF8.GetString(firstPartOfBuffer, 0, bytesRead);
 
             if (!firstPartString.Contains("xmlns="))
             {
@@ -63,13 +63,15 @@ namespace BMECat.net
             if (inputStream.Length > BMECatConstants.LargeFileSizeLimit)
             {
                 tempPath = System.IO.Path.GetTempFileName();
-                FileStream fs = System.IO.File.OpenWrite(tempPath);
-                convertedStream.CopyTo(fs);
-                inputStream.CopyTo(fs);                
-                fs.Flush();
-                fs.Dispose();
-                fs = null;
+                convertedStream.Position = 0;
+                using (FileStream fs = System.IO.File.OpenWrite(tempPath))
+                {
+                    convertedStream.CopyTo(fs);
+                    inputStream.CopyTo(fs);
+                    fs.Flush();
+                }
 
+                convertedStream.Dispose();
                 convertedStream = new FileStream(tempPath, FileMode.Open, FileAccess.Read);
             }
             else
@@ -79,7 +81,17 @@ namespace BMECat.net
             }
 
             XmlDocument doc = new XmlDocument();
-            doc.Load(convertedStream);
+            try
+            {
+                doc.Load(convertedStream);
+            }
+            finally
+            {
+                // the document has been read into memory, hence the temporary resources can be
+                // released right away, no matter whether loading succeeded or failed
+                convertedStream.Dispose();
+                _deleteTemporaryFile(tempPath, extensions);
+            }
 
             XmlNamespaceManager nsmgr = new XmlNamespaceManager(doc.NameTable);
 
@@ -212,27 +224,29 @@ namespace BMECat.net
 
             Task.WaitAll();
 
-            if (!String.IsNullOrEmpty(tempPath))
-            {
-                convertedStream.Close();
-                convertedStream.Dispose();
-                convertedStream = null;
-
-                try
-                {
-                    System.IO.File.Delete(tempPath);
-                }
-                catch (Exception ex)
-                {
-                    if ((extensions != null) && (extensions.LogService != null))
-                    {
-                        extensions.LogService.Error($"Could not delete temporary BMECat file {tempPath}. Error message: {ex.ToString()}");
-                    }
-                }
-            }
-
             return retval;
         } // !LoadAsync()
+
+
+        private static void _deleteTemporaryFile(string tempPath, BMECatExtensions extensions)
+        {
+            if (String.IsNullOrEmpty(tempPath))
+            {
+                return;
+            }
+
+            try
+            {
+                System.IO.File.Delete(tempPath);
+            }
+            catch (Exception ex)
+            {
+                if ((extensions != null) && (extensions.LogService != null))
+                {
+                    extensions.LogService.Error($"Could not delete temporary BMECat file {tempPath}. Error message: {ex.ToString()}");
+                }
+            }
+        } // !_deleteTemporaryFile()
 
 
         private async static Task<CatalogStructure> _ReadCatalogStructureAsync(XmlNode catalogNode, XmlNamespaceManager nsmgr)

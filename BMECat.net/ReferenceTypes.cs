@@ -42,7 +42,7 @@ namespace BMECat.net
     {
         public static ReferenceTypes FromString(this ReferenceTypes _, string s)
         {
-            s = s.ToLower().Trim();
+            s = s.ToLowerInvariant().Trim();
             switch (s)
             {
                 case "sparepart": return ReferenceTypes.SparePart;

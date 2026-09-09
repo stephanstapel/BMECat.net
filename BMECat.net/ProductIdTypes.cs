@@ -59,7 +59,7 @@ namespace BMECat.net
     {
         public static ProductIdTypes FromString(this ProductIdTypes _, string s)
         {
-            s = s.ToLower().Trim();
+            s = s.ToLowerInvariant().Trim();
             switch (s)
             {
                 case "buyer_specific": return ProductIdTypes.BuyerSpecific;
