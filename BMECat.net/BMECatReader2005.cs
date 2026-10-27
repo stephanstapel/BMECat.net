@@ -371,7 +371,8 @@ namespace BMECat.net
                         Name = XmlUtils.nodeAsString(featureNode, "./bmecat:FNAME", nsmgr),
                         Values = XmlUtils.nodesAsStrings(featureNode, "./bmecat:FVALUE", nsmgr),
                         Unit = _convertQuantityCode(XmlUtils.nodeAsString(featureNode, "./bmecat:FUNIT", nsmgr, null), extensions),
-                        Order = XmlUtils.nodeAsString(featureNode, "./bmecat:FORDER", nsmgr)
+                        Order = XmlUtils.nodeAsString(featureNode, "./bmecat:FORDER", nsmgr),
+                        Description = XmlUtils.nodeAsString(featureNode, "./bmecat:FDESCR", nsmgr)
                         /* TODO: FVALUE_TYPE */
                     });
                 }
