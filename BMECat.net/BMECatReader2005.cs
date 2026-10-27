@@ -38,65 +38,8 @@ namespace BMECat.net
                 return null;
             }
 
-            // make sure that the root element contains xmlns elements to indicate which namespace to use
-            string tempPath = "";
-            Stream convertedStream = new MemoryStream();
-            byte[] firstPartOfBuffer = new byte[1024];
-            int bytesRead = StreamUtils.FillBuffer(inputStream, firstPartOfBuffer);
-            string firstPartString = System.Text.Encoding.UTF8.GetString(firstPartOfBuffer, 0, bytesRead);
-
-            if (!firstPartString.Contains("xmlns="))
-            {
-                string pattern = "<BMECAT.*?>";
-                string replacement = @"<BMECAT xmlns=""http://www.bmecat.org/bmecat/2005"" version=""2005"">";
-                string outputString = Regex.Replace(firstPartString, pattern, replacement);
-                byte[] outputBuffer = System.Text.Encoding.UTF8.GetBytes(outputString);                
-                convertedStream.Write(outputBuffer, 0, outputBuffer.Length);
-            }
-            else
-            {
-                inputStream.Position = 0;
-            }
-
-            if (inputStream.Length > BMECatConstants.LargeFileSizeLimit)
-            {
-                tempPath = System.IO.Path.GetTempFileName();
-                convertedStream.Position = 0;
-                using (FileStream fs = System.IO.File.OpenWrite(tempPath))
-                {
-                    convertedStream.CopyTo(fs);
-                    inputStream.CopyTo(fs);
-                }
-
-                convertedStream.Dispose();
-                convertedStream = System.IO.File.OpenRead(tempPath);
-            }
-            else
-            {
-                inputStream.CopyTo(convertedStream);
-                convertedStream.Position = 0;
-            }
-
-            XmlDocument doc = new XmlDocument();
-            try
-            {
-                doc.Load(convertedStream);
-            }
-            finally
-            {
-                // the document has been read into memory, hence the temporary resources can be
-                // released right away, no matter whether loading succeeded or failed
-                convertedStream.Dispose();
-                _deleteTemporaryFile(tempPath, extensions);
-            }
-
-            XmlNamespaceManager nsmgr = new XmlNamespaceManager(doc.NameTable);            
-
-            string xmlnsURL = XmlUtils.AttributeText(doc.DocumentElement, "xmlns");
-            if (!String.IsNullOrEmpty(xmlnsURL))
-            {
-                nsmgr.AddNamespace("bmecat", xmlnsURL);
-            }
+            XmlDocument doc = _LoadDocument(inputStream, @"<BMECAT xmlns=""http://www.bmecat.org/bmecat/2005"" version=""2005"">", extensions);
+            XmlNamespaceManager nsmgr = _CreateNamespaceManager(doc);
             
             ProductCatalog retval = new ProductCatalog();
 
@@ -133,7 +76,7 @@ namespace BMECat.net
                 foreach (XmlNode partyNode in XmlUtils.SelectNodes(partiesNode, "./bmecat:PARTY", nsmgr))
                 {
                     Party party = null;
-                    XmlNode addressNode = XmlUtils.SelectSingleNode(doc, "./bmecat:ADDRESS", nsmgr);
+                    XmlNode addressNode = XmlUtils.SelectSingleNode(partyNode, "./bmecat:ADDRESS", nsmgr);
                     if (addressNode != null)
                     {
                         party = _ReadPartyAddress(addressNode, nsmgr);
@@ -199,7 +142,7 @@ namespace BMECat.net
                 XmlNode buyerNode = XmlUtils.SelectSingleNode(doc, "/bmecat:BMECAT/bmecat:HEADER/bmecat:BUYER", nsmgr);
                 if (buyerNode != null)
                 {
-                    XmlNode addressNode = XmlUtils.SelectSingleNode(doc, "./bmecat:ADDRESS", nsmgr);
+                    XmlNode addressNode = XmlUtils.SelectSingleNode(buyerNode, "./bmecat:ADDRESS", nsmgr);
                     if (addressNode != null)
                     {
                         retval.Buyer = _ReadPartyAddress(addressNode, nsmgr);
@@ -218,7 +161,7 @@ namespace BMECat.net
                 if (supplierNode != null)
                 {
 
-                    XmlNode addressNode = XmlUtils.SelectSingleNode(doc, "./bmecat:ADDRESS", nsmgr);
+                    XmlNode addressNode = XmlUtils.SelectSingleNode(supplierNode, "./bmecat:ADDRESS", nsmgr);
                     if (addressNode != null)
                     {
                         retval.Supplier = _ReadPartyAddress(addressNode, nsmgr);
@@ -235,26 +178,16 @@ namespace BMECat.net
             }
 
 
-            Mutex mutex = new Mutex();
-            XmlNodeList productNodes = XmlUtils.SelectNodes(doc.DocumentElement, "/bmecat:BMECAT/bmecat:T_NEW_CATALOG/bmecat:PRODUCT", nsmgr);            
-            Parallel.ForEach(productNodes.Cast<XmlNode>(), /* new ParallelOptions() {  MaxDegreeOfParallelism = 1 }, */
-                             (XmlNode productNode) =>
+            // XmlDocument is not thread safe, not even for reading, hence the products are read one after another
+            foreach (XmlNode productNode in XmlUtils.SelectNodes(doc.DocumentElement, "/bmecat:BMECAT/bmecat:T_NEW_CATALOG/bmecat:PRODUCT", nsmgr))
             {
-                Product product = _ReadProduct(productNode, nsmgr, extensions);
-                mutex.WaitOne();
-                retval.Products.Add(product);
-                mutex.ReleaseMutex();
-            });
+                retval.Products.Add(_ReadProduct(productNode, nsmgr, extensions));
+            }
 
-            XmlNodeList catalogNodes = XmlUtils.SelectNodes(doc.DocumentElement, "/bmecat:BMECAT/bmecat:T_NEW_CATALOG/bmecat:CATALOG_GROUP_SYSTEM/bmecat:CATALOG_STRUCTURE", nsmgr);
-            Parallel.ForEach(catalogNodes.Cast<XmlNode>(), /* new ParallelOptions() {  MaxDegreeOfParallelism = 1 }, */
-                             (XmlNode catalogNode) =>
-                             {
-                                 CatalogStructure catalogStructure = _ReadCatalogStructure(catalogNode, nsmgr);
-                                 mutex.WaitOne();
-                                 retval.CatalogStructures.Add(catalogStructure);
-                                 mutex.ReleaseMutex();
-                             });
+            foreach (XmlNode catalogNode in XmlUtils.SelectNodes(doc.DocumentElement, "/bmecat:BMECAT/bmecat:T_NEW_CATALOG/bmecat:CATALOG_GROUP_SYSTEM/bmecat:CATALOG_STRUCTURE", nsmgr))
+            {
+                retval.CatalogStructures.Add(_ReadCatalogStructure(catalogNode, nsmgr));
+            }
 
             // -- map catalog group assignments to products
             Dictionary<string, List<ProductCatalogGroupMapping>> mappingsMap = new Dictionary<string, List<ProductCatalogGroupMapping>>();
@@ -270,12 +203,10 @@ namespace BMECat.net
                 mapOrderSelector = "./bmecat:PRODUCT_TO_CATALOGGROUP_MAP_ORDER";
             }
 
-            Parallel.ForEach(productToCatalogGroupMapNodes.Cast<XmlNode>(), /* new ParallelOptions() {  MaxDegreeOfParallelism = 1 }, */
-            async (XmlNode productToCatalogGroupMapNode) =>
+            foreach (XmlNode productToCatalogGroupMapNode in productToCatalogGroupMapNodes)
             {
                 string productId = XmlUtils.nodeAsString(productToCatalogGroupMapNode, idSelector, nsmgr);
 
-                mutex.WaitOne();
                 if (!mappingsMap.ContainsKey(productId))
                 {
                     mappingsMap.Add(productId, new List<ProductCatalogGroupMapping>());
@@ -290,8 +221,7 @@ namespace BMECat.net
                     CatalogGroupId = XmlUtils.nodeAsString(productToCatalogGroupMapNode, "./bmecat:CATALOG_GROUP_ID", nsmgr),
                     Order = XmlUtils.nodeAsInt(productToCatalogGroupMapNode, mapOrderSelector, nsmgr)
                 });
-                mutex.ReleaseMutex();
-            });
+            }
 
             foreach (Product p in retval.Products)
             {
@@ -301,31 +231,8 @@ namespace BMECat.net
                 }
             }
 
-            Task.WaitAll();
-
             return retval;
         } // !Load()
-
-
-        private static void _deleteTemporaryFile(string tempPath, BMECatExtensions extensions)
-        {
-            if (String.IsNullOrEmpty(tempPath))
-            {
-                return;
-            }
-
-            try
-            {
-                System.IO.File.Delete(tempPath);
-            }
-            catch (Exception ex)
-            {
-                if ((extensions != null) && (extensions.LogService != null))
-                {
-                    extensions.LogService.Error($"Could not delete temporary BMECat file {tempPath}. Error message: {ex.ToString()}");
-                }
-            }
-        } // !_deleteTemporaryFile()
 
 
         private static CatalogStructure _ReadCatalogStructure(XmlNode catalogNode, XmlNamespaceManager nsmgr)
@@ -626,46 +533,5 @@ namespace BMECat.net
             return retval;
         } // !_readEDXF()
 
-
-        private static Party _ReadPartyAddress(XmlNode addressNode, XmlNamespaceManager nsmgr)
-        {
-            Party p = new Party()
-            {
-                Name2 = XmlUtils.nodeAsString(addressNode, "./bmecat:NAME2"),
-                Name3 = XmlUtils.nodeAsString(addressNode, "./bmecat:NAME2"),
-                Department = XmlUtils.nodeAsString(addressNode, "./bmecat:DEPARTMENT"),
-                ContactName = XmlUtils.nodeAsString(addressNode, "./bmecat:CONTACT"),
-                Street = XmlUtils.nodeAsString(addressNode, "./bmecat:STREET"),
-                Zip = XmlUtils.nodeAsString(addressNode, "./bmecat:ZIP"),
-                BoxNo = XmlUtils.nodeAsString(addressNode, "./bmecat:BOXNO"),
-                ZipBox = XmlUtils.nodeAsString(addressNode, "./bmecat:ZIPBOX"),
-                City = XmlUtils.nodeAsString(addressNode, "./bmecat:CITY"),
-                State = XmlUtils.nodeAsString(addressNode, "./bmecat:STATE"),
-                Country = XmlUtils.nodeAsString(addressNode, "./bmecat:COUNTRY"),
-                VATID = XmlUtils.nodeAsString(addressNode, "./bmecat:VAT_ID"),
-                Phone = XmlUtils.nodeAsString(addressNode, "./bmecat:PHONE"), // @todo phone is typed
-                Fax = XmlUtils.nodeAsString(addressNode, "./bmecat:FAX") // @todo fax is typed
-            };
-
-            foreach (XmlNode contactDetailNode in XmlUtils.SelectNodes(addressNode, "./bmecat:CONTACT_DETAILS"))
-            {
-                p.ContactDetails.Add(new ContactDetails()
-                {
-                    Id = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:CONTACT_ID"),
-                    Name = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:CONTACT_NAME"),
-                    FirstName = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:FIRST_NAME"),
-                    Title = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:TITLE"),
-                    AcademicTitle = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:ACADEMIC_TITLE"),
-                    ContactRole = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:CONTACT_ROLE"), // @todo role is typed
-                    ContactDescription = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:CONTACT_DESCR"),
-                    Phone = XmlUtils.nodesAsStrings(contactDetailNode, "./bmecat:PHONE"), // @todo phone is typed
-                    Fax = XmlUtils.nodesAsStrings(contactDetailNode, "./bmecat:FAX"), // @todo fax is typed
-                    URL = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:URL"),
-                    Emails = XmlUtils.nodeAsString(contactDetailNode, "./bmecat:EMAILS") // @todo find out if this is a list in reality 
-                });
-            }
-
-            return p;
-        } // !_ReadyPartyAddress()
     }
 }

@@ -49,7 +49,8 @@ namespace BMECat.net
 
         public async static Task<ProductCatalog> LoadAsync(Stream stream, BMECatExtensions extensions = null)
         {
-            if (!stream.CanRead)
+            // the version detection and the namespace handling of the readers rewind the stream
+            if (!stream.CanRead || !stream.CanSeek)
             {
                 throw new IllegalStreamException("Cannot read from stream");
             }
@@ -62,7 +63,8 @@ namespace BMECat.net
             stream.Position = 0;
 
             string xmlHeading = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
-            Regex regex = new Regex("<BMECAT[^>]+version=\"([^\"]+)\"");
+            // xml allows both double and single quotes around attribute values
+            Regex regex = new Regex("<BMECAT[^>]+version=[\"']([^\"']+)[\"']");
             Match match = regex.Match(xmlHeading);
             if (match.Success && match.Groups.Count > 1)
             {

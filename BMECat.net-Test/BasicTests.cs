@@ -29,7 +29,7 @@ namespace BMECat.net_Test
 
             ms.Position = 0;
             ProductCatalog asynchronouslyLoadedCatalog = await ProductCatalog.LoadAsync(ms);            
-            string asynchronouslyLoadedCatalogJson = JsonSerializer.Serialize(synchronouslyLoadedCatalog);
+            string asynchronouslyLoadedCatalogJson = JsonSerializer.Serialize(asynchronouslyLoadedCatalog);
 
             Assert.AreEqual(synchronouslyLoadedCatalogJson, asynchronouslyLoadedCatalogJson);
 
