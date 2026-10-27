@@ -28,7 +28,7 @@ namespace BMECat.net_Test
         [TestMethod]
         public async Task WritingToANonSeekableStreamFailsWithIllegalStreamException()
         {
-            await Assert.ThrowsExceptionAsync<IllegalStreamException>(() => _GenerateCatalog().SaveAsync(new NonSeekableStream()));
+            await Assert.ThrowsExactlyAsync<IllegalStreamException>(() => _GenerateCatalog().SaveAsync(new NonSeekableStream()));
         } // !WritingToANonSeekableStreamFailsWithIllegalStreamException()
         #endregion // !Stream handling
 

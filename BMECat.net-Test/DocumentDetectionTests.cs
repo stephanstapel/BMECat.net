@@ -108,7 +108,7 @@ namespace BMECat.net_Test
         {
             byte[] buffer = Encoding.UTF8.GetBytes("<BMECAT version=\"2005\"><HEADER /></BMECAT>");
 
-            await Assert.ThrowsExceptionAsync<IllegalStreamException>(() => ProductCatalog.LoadAsync(new NonSeekableStream(buffer)));
+            await Assert.ThrowsExactlyAsync<IllegalStreamException>(() => ProductCatalog.LoadAsync(new NonSeekableStream(buffer)));
         } // !LoadingFromANonSeekableStreamFailsWithIllegalStreamException()
         #endregion // !Stream requirements
     }

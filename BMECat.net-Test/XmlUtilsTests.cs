@@ -78,7 +78,7 @@ namespace BMECat.net_Test
 
 
         #region Booleans
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("true", true)]
         [DataRow(" TRUE ", true)]
         [DataRow("1", true)]
