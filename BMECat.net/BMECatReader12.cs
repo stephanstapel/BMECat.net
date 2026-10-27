@@ -33,7 +33,14 @@ namespace BMECat.net
 {
     internal class BMECatReader12 : BMECatReaderBase
     {
-        internal async static Task<ProductCatalog> LoadAsync(Stream inputStream, BMECatExtensions extensions = null)
+        internal static Task<ProductCatalog> LoadAsync(Stream inputStream, BMECatExtensions extensions = null)
+        {
+            // reading works on the in memory document and has nothing to await
+            return Task.FromResult(_Load(inputStream, extensions));
+        } // !LoadAsync()
+
+
+        private static ProductCatalog _Load(Stream inputStream, BMECatExtensions extensions)
         {
             if (inputStream == null)
             {
@@ -152,7 +159,7 @@ namespace BMECat.net
             }
 
             return retval;
-        } // !LoadAsync()
+        } // !_Load()
 
 
         private static CatalogStructure _ReadCatalogStructure(XmlNode catalogNode, XmlNamespaceManager nsmgr)
