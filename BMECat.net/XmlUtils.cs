@@ -29,6 +29,9 @@ namespace BMECat.net
 {
     public class XmlUtils
     {
+        private static readonly string[] _GermanDateFormats = { "dd.MM.yyyy", "dd.MM.yyyy HH:mm", "dd.MM.yyyy HH:mm:ss" };
+
+
         /// <summary>
         ///  reads a certain attribute value
         /// </summary>
@@ -64,7 +67,7 @@ namespace BMECat.net
             }
             else
             {
-                if ((value.Trim().ToLower() == "true") || (value.Trim() == "1"))
+                if ((value.Trim().ToLowerInvariant() == "true") || (value.Trim() == "1"))
                 {
                     return true;
                 }
@@ -99,10 +102,6 @@ namespace BMECat.net
             {
                 return defaultValue;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            };
         } // nodeAsString()
 
 
@@ -126,12 +125,6 @@ namespace BMECat.net
             {
                 return defaultValue;
             }
-            catch (Exception ex)
-            {
-                throw ex;
-            };
-
-            return defaultValue;
         } // nodesAsStrings()
 
 
@@ -198,33 +191,29 @@ namespace BMECat.net
 
             string temp = nodeAsString(node, xpath, nsmgr, "");
             DateTime retval;
-            if (DateTime.TryParse(temp, out retval))
+            // invariant culture: gregorian calendar, independent from the machine the code runs on.
+            // The current culture would e.g. read 2004-08-20 as buddhist year 2004 in th-TH
+            CultureInfo provider = CultureInfo.InvariantCulture;
+
+            // tolerate non conformant documents that were written with german date notation, e.g. 01.02.2004.
+            // This has to be checked first since the lenient parsing below would read it month first, i.e. as january 2nd
+            if (DateTime.TryParseExact(temp, _GermanDateFormats, provider, DateTimeStyles.None, out retval))
             {
                 return retval;
             }
-            else
+
+            if (DateTime.TryParseExact(temp, "yyyyMMdd", provider, DateTimeStyles.None, out retval))
             {
-                string format = "yyyy-MM-ddThh:mm:sszzz";
-                CultureInfo provider = CultureInfo.InvariantCulture;
-                if (DateTime.TryParseExact(temp, format, provider, DateTimeStyles.None, out retval))
-                {
-                    return retval;
-                }
-
-                format = "yyyyMMdd";                
-                if (DateTime.TryParseExact(temp, format, provider, DateTimeStyles.None, out retval))
-                {
-                    return retval;
-                }
-
-                format = "yyyy-MM-dd";
-                if (DateTime.TryParseExact(temp, format, provider, DateTimeStyles.None, out retval))
-                {
-                    return retval;
-                }
-
-                return defaultValue;
+                return retval;
             }
+
+            // xml notation, e.g. 2004-08-20, 2004-08-20T14:59:54 or 2004-08-20T14:59:54+02:00
+            if (DateTime.TryParse(temp, provider, DateTimeStyles.None, out retval))
+            {
+                return retval;
+            }
+
+            return defaultValue;
         } // !nodeAsDateTime()
 
 

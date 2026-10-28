@@ -33,7 +33,7 @@ namespace BMECat.net
         {
             if (ignoreCase)
             {
-                Feature featureFound = this.Features.FirstOrDefault(f => f.Name.ToLower().Equals(featureName.ToLower()));
+                Feature featureFound = this.Features.FirstOrDefault(f => f.Name.ToLowerInvariant().Equals(featureName.ToLowerInvariant()));
                 return (featureFound != null);
             }
             else
@@ -48,7 +48,7 @@ namespace BMECat.net
         {
             if (ignoreCase)
             {
-                return this.Features.FirstOrDefault(f => f.Name.ToLower().Equals(featureName.ToLower()));                
+                return this.Features.FirstOrDefault(f => f.Name.ToLowerInvariant().Equals(featureName.ToLowerInvariant()));                
             }
             else
             {

@@ -49,7 +49,8 @@ namespace BMECat.net
 
         public async static Task<ProductCatalog> LoadAsync(Stream stream, BMECatExtensions extensions = null)
         {
-            if (!stream.CanRead)
+            // the version detection and the namespace handling of the readers rewind the stream
+            if (!stream.CanRead || !stream.CanSeek)
             {
                 throw new IllegalStreamException("Cannot read from stream");
             }
@@ -58,11 +59,12 @@ namespace BMECat.net
             BMECatVersion version = BMECatVersion.Version12;
 
             byte[] buffer = new byte[1024];
-            stream.Read(buffer, 0, 1024);
+            int bytesRead = StreamUtils.FillBuffer(stream, buffer);
             stream.Position = 0;
 
-            string xmlHeading = System.Text.Encoding.UTF8.GetString(buffer);
-            Regex regex = new Regex("<BMECAT[^>]+version=\"([^\"]+)\"");
+            string xmlHeading = System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            // xml allows both double and single quotes around attribute values
+            Regex regex = new Regex("<BMECAT[^>]+version=[\"']([^\"']+)[\"']");
             Match match = regex.Match(xmlHeading);
             if (match.Success && match.Groups.Count > 1)
             {
@@ -93,14 +95,17 @@ namespace BMECat.net
         } // !LoadAsync()
 
 
-        public static Task<ProductCatalog> LoadAsync(string filename, BMECatExtensions extensions = null)
+        public async static Task<ProductCatalog> LoadAsync(string filename, BMECatExtensions extensions = null)
         {
             if (!System.IO.File.Exists(filename))
             {
                 throw new FileNotFoundException();
             }
 
-            return LoadAsync(new FileStream(filename, FileMode.Open, FileAccess.Read), extensions);
+            using (FileStream fs = new FileStream(filename, FileMode.Open, FileAccess.Read))
+            {
+                return await LoadAsync(fs, extensions);
+            }
         } // !LoadAsync()
     }
 }

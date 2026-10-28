@@ -35,7 +35,7 @@ namespace BMECat.net
     {
         public static PartyIdTypes? FromString(this PartyIdTypes _, string s)
         {
-            s = s.ToLower().Trim();
+            s = s.ToLowerInvariant().Trim();
             switch (s)
             {
                 case "buyer_specific": return PartyIdTypes.BuyerSpecific;

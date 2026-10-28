@@ -29,7 +29,7 @@ namespace BMECat.net_Test
 
             ms.Position = 0;
             ProductCatalog asynchronouslyLoadedCatalog = await ProductCatalog.LoadAsync(ms);            
-            string asynchronouslyLoadedCatalogJson = JsonSerializer.Serialize(synchronouslyLoadedCatalog);
+            string asynchronouslyLoadedCatalogJson = JsonSerializer.Serialize(asynchronouslyLoadedCatalog);
 
             Assert.AreEqual(synchronouslyLoadedCatalogJson, asynchronouslyLoadedCatalogJson);
 
@@ -69,7 +69,7 @@ namespace BMECat.net_Test
 
             ms.Position = 0;
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds.Count, 0);
+            Assert.AreEqual(0, loadedCatalog.Products.First().PIds.Count);
 
             Task.WaitAll();
         }
@@ -90,9 +90,9 @@ namespace BMECat.net_Test
 
             ms.Position = 0;
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds.Count, 1);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Type, ProductIdTypes.GTIN);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, testId);
+            Assert.AreEqual(1, loadedCatalog.Products.First().PIds.Count);
+            Assert.AreEqual(ProductIdTypes.GTIN, loadedCatalog.Products.First().PIds[0].Type);
+            Assert.AreEqual(testId, loadedCatalog.Products.First().PIds[0].Id);
 
             Task.WaitAll();
         }
@@ -113,9 +113,9 @@ namespace BMECat.net_Test
 
             ms.Position = 0;
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds.Count, 1);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Type, ProductIdTypes.EAN);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, testId);
+            Assert.AreEqual(1, loadedCatalog.Products.First().PIds.Count);
+            Assert.AreEqual(ProductIdTypes.EAN, loadedCatalog.Products.First().PIds[0].Type);
+            Assert.AreEqual(testId, loadedCatalog.Products.First().PIds[0].Id);
 
             Task.WaitAll();
         }
@@ -136,9 +136,9 @@ namespace BMECat.net_Test
 
             ms.Position = 0;
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds.Count, 1);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Type, ProductIdTypes.SupplierSpecific);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, testId);
+            Assert.AreEqual(1, loadedCatalog.Products.First().PIds.Count);
+            Assert.AreEqual(ProductIdTypes.SupplierSpecific, loadedCatalog.Products.First().PIds[0].Type);
+            Assert.AreEqual(testId, loadedCatalog.Products.First().PIds[0].Id);
 
             Task.WaitAll();
         }
@@ -162,10 +162,10 @@ namespace BMECat.net_Test
             ms.Position = 0;
             ProductCatalog loadedCatalog = await ProductCatalog.LoadAsync(ms);
             Assert.AreEqual(2, loadedCatalog.Products.First().PIds.Count);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Type, ProductIdTypes.EAN);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[0].Id, testId0);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[1].Type, ProductIdTypes.GTIN);
-            Assert.AreEqual(loadedCatalog.Products.First().PIds[1].Id, testId1);
+            Assert.AreEqual(ProductIdTypes.EAN, loadedCatalog.Products.First().PIds[0].Type);
+            Assert.AreEqual(testId0, loadedCatalog.Products.First().PIds[0].Id);
+            Assert.AreEqual(ProductIdTypes.GTIN, loadedCatalog.Products.First().PIds[1].Type);
+            Assert.AreEqual(testId1, loadedCatalog.Products.First().PIds[1].Id);
 
             Task.WaitAll();
         }

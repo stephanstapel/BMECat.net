@@ -110,7 +110,7 @@ namespace BMECat.net
             {
                 if (ignoreCase)
                 {
-                    featureSet.Features = featureSet.Features.Where(f => !f.Name.ToLower().Equals(featureName.ToLower())).ToList();
+                    featureSet.Features = featureSet.Features.Where(f => !f.Name.ToLowerInvariant().Equals(featureName.ToLowerInvariant())).ToList();
                 }
                 else
                 {

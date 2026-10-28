@@ -33,7 +33,7 @@ namespace BMECat.net
     {
         public static CatalogStructureTypes? FromString(this CatalogStructureTypes _, string s)
         {
-            s = s.ToLower().Trim();
+            s = s.ToLowerInvariant().Trim();
             switch (s)
             {
                 case "leaf": return CatalogStructureTypes.Leaf;

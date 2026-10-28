@@ -121,7 +121,7 @@ namespace BMECat.net
                     _writeOptionalElementString(Writer, "EAN", eanPId.Id);
                 }
                 
-                _writeOptionalElementString(Writer, "STOCK", product.Stock.HasValue ? product.Stock.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : null);
+                _writeOptionalElementString(Writer, "STOCK", _formatInteger(product.Stock));
                 _writeOptionalElementString(Writer, "MANUFACTURER_PID", String.Format("{0}", product.ManufacturerPID));
                 _writeOptionalElementString(Writer, "MANUFACTURER_NAME", String.Format("{0}", product.ManufacturerName));
                 _writeOptionalElementString(Writer, "MANUFACTURER_TYPE_DESCR", String.Format("{0}", product.ManufacturerTypeDescription));
@@ -133,8 +133,17 @@ namespace BMECat.net
                 if (product.OrderDetails != null)
                 {
                     Writer.WriteStartElement("PRODUCT_ORDER_DETAILS");
-                    _writeOptionalElementString(Writer, "ORDER_UNIT", product.OrderDetails.OrderUnit);
-                    _writeOptionalElementString(Writer, "CONTENT_UNIT", product.OrderDetails.ContentUnit);
+                    if (!_writeOptionalElementString(Writer, "ORDER_UNIT", product.OrderDetails.OrderUnit, extensions))
+                    {
+                        // ORDER_UNIT is mandatory within PRODUCT_ORDER_DETAILS. There is no sensible default unit,
+                        // hence the remaining order details are still written instead of being dropped silently
+                        extensions?.LogService?.Warn($"Product {product.No} has order details without order unit, the written document does not conform to the BMECat schema");
+                    }
+                    _writeOptionalElementString(Writer, "CONTENT_UNIT", product.OrderDetails.ContentUnit, extensions);
+                    _writeOptionalElementString(Writer, "NO_CU_PER_OU", _formatInteger(product.OrderDetails.ContentUnitPerOrderUnit));
+                    _writeOptionalElementString(Writer, "PRICE_QUANTITY", _formatInteger(product.OrderDetails.PriceQuantity));
+                    _writeOptionalElementString(Writer, "QUANTITY_MIN", _formatInteger(product.OrderDetails.QuantityMin));
+                    _writeOptionalElementString(Writer, "QUANTITY_INTERVAL", _formatInteger(product.OrderDetails.QuantityInterval));
                     Writer.WriteEndElement(); // !PRODUCT_ORDER_DETAILS
                 }
 
@@ -149,7 +158,7 @@ namespace BMECat.net
                         Writer.WriteElementString("PRICE_AMOUNT", price.Amount.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
                         Writer.WriteElementString("PRICE_CURRENCY", price.Currency.ToString());
                         Writer.WriteElementString("TAX", price.Tax.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture));
-                        _writeOptionalElementString(Writer, "LOWER_BOUND", price.LowerBound.HasValue ? price.LowerBound.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : null);
+                        _writeOptionalElementString(Writer, "LOWER_BOUND", _formatInteger(price.LowerBound));
                         Writer.WriteEndElement(); // !PRODUCT_PRICE
                     }
                     Writer.WriteEndElement(); // !PRODUCT_PRICE_DETAILS
@@ -173,10 +182,11 @@ namespace BMECat.net
 
         public async Task SaveAsync(ProductCatalog catalog, string filename, BMECatExtensions extensions = null)
         {
-            FileStream fs = new FileStream(filename, FileMode.Create, FileAccess.Write);
-            await SaveAsync(catalog, fs, extensions);
-            fs.Flush();
-            fs.Close();
+            using (FileStream fs = new FileStream(filename, FileMode.Create, FileAccess.Write))
+            {
+                await SaveAsync(catalog, fs, extensions);
+                fs.Flush();
+            }
         } // !SaveAsync()
 
 
@@ -230,23 +240,40 @@ namespace BMECat.net
         } // !_writeOptionalElementString()
 
 
-        private void _writeOptionalElementString(XmlTextWriter writer, string tagName, QuantityCode value, BMECatExtensions extensions = null)
+        private static string _formatInteger(int? value)
         {
-            if (value.ClearText != null)
+            return value.HasValue ? value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : null;
+        } // !_formatInteger()
+
+
+        /// <returns>true if the element was written</returns>
+        private bool _writeOptionalElementString(XmlTextWriter writer, string tagName, QuantityCode value, BMECatExtensions extensions = null)
+        {
+            if (value == null)
+            {
+                return false;
+            }
+
+            if (!String.IsNullOrEmpty(value.ClearText))
             {
                 writer.WriteElementString(tagName, value.ClearText);
+                return true;
             }
-            else if (value.Code != QuantityCodes.Unknown)
+
+            if (!value.Code.HasValue || (value.Code == QuantityCodes.Unknown))
             {
-                if ((extensions != null) && (extensions.QuantityCodeConverter != null))
-                {
-                    writer.WriteElementString(tagName, extensions.QuantityCodeConverter.Convert(value.Code));
-                }
-                else
-                {
-                    writer.WriteElementString(tagName, value.Code.ToString());
-                }
+                return false;
             }
+
+            // the code itself is used if the converter does not know the code
+            string text = extensions?.QuantityCodeConverter?.Convert(value.Code);
+            if (String.IsNullOrEmpty(text))
+            {
+                text = value.Code.Value.EnumToString();
+            }
+
+            writer.WriteElementString(tagName, text);
+            return true;
         } // !_writeOptionalElementString()
     }
 }
