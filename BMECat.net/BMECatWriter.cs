@@ -28,6 +28,11 @@ namespace BMECat.net
 {
     public class BMECatWriter
     {
+        /// <summary>
+        /// Namespace of the BMECat 2005 release
+        /// </summary>
+        public const string Namespace = "http://www.bmecat.org/bmecat/2005";
+
         public ProductCatalog Catalog { get; private set; }
         private XmlTextWriter Writer { get; set; }
 
@@ -49,7 +54,7 @@ namespace BMECat.net
             #region XML-Kopfbereich
             Writer.WriteStartElement("BMECAT");
             Writer.WriteAttributeString("version", "2005");
-            Writer.WriteAttributeString("xmlns", "http://www.bmecat.org/bmecat/2005fd");
+            Writer.WriteAttributeString("xmlns", Namespace);
             #endregion // !XML-Kopfbereich
 
             #region Header
@@ -70,14 +75,26 @@ namespace BMECat.net
             Writer.WriteEndElement(); // !CATALOG
 
             // BMECat 2005 describes buyer and supplier as parties, the header only references them
-            _writeOptionalElementString(Writer, "BUYER_IDREF", this.Catalog.Buyer?.Id, new Dictionary<string, string>() { { "type", "buyer_specific" } });
-            _writeOptionalElementString(Writer, "SUPPLIER_IDREF", this.Catalog.Supplier?.Id, new Dictionary<string, string>() { { "type", "supplier_specific" } });
+            if (this.Catalog.Buyer != null)
+            {
+                _writeOptionalElementString(Writer, "BUYER_IDREF", _partyId(this.Catalog.Buyer, "buyer"), new Dictionary<string, string>() { { "type", "buyer_specific" } });
+            }
+
+            if (this.Catalog.Supplier != null)
+            {
+                _writeOptionalElementString(Writer, "SUPPLIER_IDREF", _partyId(this.Catalog.Supplier, "supplier"), new Dictionary<string, string>() { { "type", "supplier_specific" } });
+            }
+            else
+            {
+                // SUPPLIER_IDREF is mandatory, but there is no party it could reference
+                extensions?.LogService?.Warn("The catalog has no supplier, the written document does not conform to the BMECat schema");
+            }
 
             if ((this.Catalog.Buyer != null) || (this.Catalog.Supplier != null))
             {
                 Writer.WriteStartElement("PARTIES");
-                _writeParty(this.Catalog.Buyer, "buyer");
-                _writeParty(this.Catalog.Supplier, "supplier");
+                _writeParty(this.Catalog.Buyer, "buyer", extensions);
+                _writeParty(this.Catalog.Supplier, "supplier", extensions);
                 Writer.WriteEndElement(); // !PARTIES
             }
 
@@ -104,14 +121,7 @@ namespace BMECat.net
                 }
 
 
-                /// deprecate: this element will be removed soon according to the BMECat 200 documentation
-                ProductId eanPId = product.PIds.FirstOrDefault(p => p.Type.Equals(ProductIdTypes.EAN));
-                if (eanPId != null)
-                {
-                    _writeOptionalElementString(Writer, "EAN", eanPId.Id);
-                }
                 
-                _writeOptionalElementString(Writer, "STOCK", _formatInteger(product.Stock));
                 _writeOptionalElementString(Writer, "MANUFACTURER_PID", String.Format("{0}", product.ManufacturerPID));
                 _writeOptionalElementString(Writer, "MANUFACTURER_NAME", String.Format("{0}", product.ManufacturerName));
                 _writeOptionalElementString(Writer, "MANUFACTURER_TYPE_DESCR", String.Format("{0}", product.ManufacturerTypeDescription));
@@ -173,6 +183,13 @@ namespace BMECat.net
                         continue;
                     }
 
+                    if (reference.Type == ReferenceTypes.Unknown)
+                    {
+                        // the type attribute is mandatory, a reference of unknown type cannot be written
+                        extensions?.LogService?.Warn($"Product {product.No} references {reference.IdTo} without known type, the reference is not written");
+                        continue;
+                    }
+
                     Writer.WriteStartElement("PRODUCT_REFERENCE");
                     Writer.WriteAttributeString("type", reference.Type.EnumToString());
                     Writer.WriteElementString("PROD_ID_TO", reference.IdTo);
@@ -188,6 +205,12 @@ namespace BMECat.net
             {
                 foreach (ProductCatalogGroupMapping mapping in product.ProductCatalogGroupMappings ?? new List<ProductCatalogGroupMapping>())
                 {
+                    // both ids are mandatory, a mapping without them would reference nothing
+                    if (String.IsNullOrEmpty(product.No) || String.IsNullOrEmpty(mapping?.CatalogGroupId))
+                    {
+                        continue;
+                    }
+
                     Writer.WriteStartElement("PRODUCT_TO_CATALOGGROUP_MAP");
                     Writer.WriteAttributeString("mode", "new");
                     Writer.WriteElementString("PROD_ID", product.No);
@@ -220,15 +243,25 @@ namespace BMECat.net
         } // !SaveAsync()
 
 
-        private void _writeParty(Party party, string role)
+        /// <summary>
+        /// The header references the parties by their id, parties without id are identified by their role
+        /// </summary>
+        private static string _partyId(Party party, string role)
+        {
+            return String.IsNullOrEmpty(party.Id) ? role : party.Id;
+        } // !_partyId()
+
+
+        private void _writeParty(Party party, string role, BMECatExtensions extensions)
         {
             if (party == null)
             {
                 return;
             }
 
+            string partyId = _partyId(party, role);
             Writer.WriteStartElement("PARTY");
-            _writeOptionalElementString(Writer, "PARTY_ID", party.Id, new Dictionary<string, string>() { { "type", $"{role}_specific" } });
+            _writeOptionalElementString(Writer, "PARTY_ID", partyId, new Dictionary<string, string>() { { "type", $"{role}_specific" } });
             Writer.WriteElementString("PARTY_ROLE", role);
 
             Writer.WriteStartElement("ADDRESS");
@@ -236,16 +269,25 @@ namespace BMECat.net
             _writeOptionalElementString(Writer, "NAME2", party.Name2);
             _writeOptionalElementString(Writer, "NAME3", party.Name3);
             _writeOptionalElementString(Writer, "DEPARTMENT", party.Department);
-            _writeOptionalElementString(Writer, "CONTACT", party.ContactName);
 
+            // CONTACT and CONTACT_DETAILS are alternatives, the structured contact details take precedence
             List<ContactDetails> contacts = party.ContactDetails ?? new List<ContactDetails>();
+            if (contacts.Count == 0)
+            {
+                _writeOptionalElementString(Writer, "CONTACT", party.ContactName);
+            }
+            else if (!String.IsNullOrEmpty(party.ContactName))
+            {
+                extensions?.LogService?.Warn($"Party {partyId} has a contact name and contact details, only the contact details are written");
+            }
+
             for (int i = 0; i < contacts.Count; i++)
             {
                 ContactDetails contact = contacts[i];
                 Writer.WriteStartElement("CONTACT_DETAILS");
 
                 // CONTACT_ID is mandatory, contacts without id are numbered within their party
-                Writer.WriteElementString("CONTACT_ID", String.IsNullOrEmpty(contact.Id) ? $"{party.Id ?? role}-{i + 1}" : contact.Id);
+                Writer.WriteElementString("CONTACT_ID", String.IsNullOrEmpty(contact.Id) ? $"{partyId}-{i + 1}" : contact.Id);
                 _writeOptionalElementString(Writer, "CONTACT_NAME", contact.Name);
                 _writeOptionalElementString(Writer, "FIRST_NAME", contact.FirstName);
                 _writeOptionalElementString(Writer, "TITLE", contact.Title);
@@ -294,11 +336,24 @@ namespace BMECat.net
             if (classification != null)
             {
                 _writeOptionalElementString(Writer, "REFERENCE_FEATURE_SYSTEM_NAME", classification.Classification);
-                foreach (FeatureClassificationSystemGroupId groupId in classification.GroupIds ?? new List<FeatureClassificationSystemGroupId>())
+
+                // REFERENCE_FEATURE_GROUP_ID and REFERENCE_FEATURE_GROUP_NAME are alternatives, the ids take precedence
+                List<string> groupIds = (classification.GroupIds ?? new List<FeatureClassificationSystemGroupId>()).Select(g => g?.Name)
+                                                                                                                 .Where(name => !String.IsNullOrEmpty(name))
+                                                                                                                 .ToList();
+                foreach (string groupId in groupIds)
                 {
-                    _writeOptionalElementString(Writer, "REFERENCE_FEATURE_GROUP_ID", groupId.Name);
+                    Writer.WriteElementString("REFERENCE_FEATURE_GROUP_ID", groupId);
                 }
-                _writeOptionalElementString(Writer, "REFERENCE_FEATURE_GROUP_NAME", classification.GroupName);
+
+                if (groupIds.Count == 0)
+                {
+                    _writeOptionalElementString(Writer, "REFERENCE_FEATURE_GROUP_NAME", classification.GroupName);
+                }
+                else if (!String.IsNullOrEmpty(classification.GroupName))
+                {
+                    extensions?.LogService?.Warn($"Feature system {classification.Classification} has group ids and a group name, only the group ids are written");
+                }
             }
 
             foreach (Feature feature in featureSet.Features ?? new List<Feature>())

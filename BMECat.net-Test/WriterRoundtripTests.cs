@@ -79,10 +79,107 @@ namespace BMECat.net_Test
             Assert.IsNull(doc.SelectSingleNode("//bmecat:PARTIES", nsmgr));
             Assert.IsNull(doc.SelectSingleNode("//bmecat:SUPPLIER_IDREF", nsmgr));
         } // !CatalogWithoutPartiesDoesNotWritePartiesElement()
+
+
+        [TestMethod]
+        public void PartiesWithoutIdAreReferencedByTheirRole()
+        {
+            ProductCatalog catalog = _GenerateCatalog();
+            catalog.Supplier.Id = null;
+            catalog.Buyer.Id = "";
+
+            XmlDocument doc = _WriteToDocument(catalog, out XmlNamespaceManager nsmgr);
+
+            Assert.AreEqual("supplier", doc.SelectSingleNode("/bmecat:BMECAT/bmecat:HEADER/bmecat:SUPPLIER_IDREF", nsmgr)?.InnerText);
+            Assert.AreEqual("buyer", doc.SelectSingleNode("/bmecat:BMECAT/bmecat:HEADER/bmecat:BUYER_IDREF", nsmgr)?.InnerText);
+            Assert.AreEqual("supplier", doc.SelectSingleNode("//bmecat:PARTY[bmecat:PARTY_ROLE='supplier']/bmecat:PARTY_ID", nsmgr)?.InnerText);
+            Assert.AreEqual("supplier-1", doc.SelectSingleNode("//bmecat:CONTACT_DETAILS/bmecat:CONTACT_ID", nsmgr)?.InnerText);
+        } // !PartiesWithoutIdAreReferencedByTheirRole()
+
+
+        [TestMethod]
+        public void MissingSupplierIsReported()
+        {
+            ProductCatalog catalog = _GenerateCatalog();
+            catalog.Supplier = null;
+            RecordingLogService logService = new RecordingLogService();
+
+            catalog.Save(new MemoryStream(), new BMECatExtensions() { LogService = logService });
+
+            Assert.AreEqual(1, logService.Warnings.Count);
+            StringAssert.Contains(logService.Warnings[0], "supplier");
+        } // !MissingSupplierIsReported()
+
+
+        [TestMethod]
+        public void ContactNameIsOnlyWrittenWithoutContactDetails()
+        {
+            ProductCatalog catalog = _GenerateCatalog();
+            catalog.Supplier.ContactName = "Zentrale";
+            catalog.Buyer.ContactName = "Einkauf";
+            RecordingLogService logService = new RecordingLogService();
+
+            MemoryStream ms = new MemoryStream();
+            catalog.Save(ms, new BMECatExtensions() { LogService = logService });
+            XmlDocument doc = _LoadDocument(ms, out XmlNamespaceManager nsmgr);
+
+            Assert.IsNull(doc.SelectSingleNode("//bmecat:PARTY[bmecat:PARTY_ROLE='supplier']//bmecat:CONTACT", nsmgr));
+            Assert.AreEqual(1, doc.SelectNodes("//bmecat:PARTY[bmecat:PARTY_ROLE='supplier']//bmecat:CONTACT_DETAILS", nsmgr)!.Count);
+            Assert.AreEqual("Einkauf", doc.SelectSingleNode("//bmecat:PARTY[bmecat:PARTY_ROLE='buyer']//bmecat:CONTACT", nsmgr)?.InnerText);
+            Assert.AreEqual(1, logService.Warnings.Count);
+        } // !ContactNameIsOnlyWrittenWithoutContactDetails()
         #endregion // !Parties
 
 
         #region Product content
+        [TestMethod]
+        public void FeatureGroupNameIsOnlyWrittenWithoutGroupIds()
+        {
+            ProductCatalog catalog = _GenerateCatalog();
+            catalog.Products[0].FeatureSets[0].FeatureClassificationSystem.GroupName = "Schrauben";
+
+            XmlDocument doc = _WriteToDocument(catalog, out XmlNamespaceManager nsmgr);
+
+            Assert.AreEqual("EC000001", doc.SelectSingleNode("//bmecat:REFERENCE_FEATURE_GROUP_ID", nsmgr)?.InnerText);
+            Assert.IsNull(doc.SelectSingleNode("//bmecat:REFERENCE_FEATURE_GROUP_NAME", nsmgr));
+
+            catalog.Products[0].FeatureSets[0].FeatureClassificationSystem.GroupIds.Clear();
+            Product p = _Roundtrip(catalog).Products[0];
+
+            Assert.AreEqual("Schrauben", p.FeatureSets[0].FeatureClassificationSystem.GroupName);
+        } // !FeatureGroupNameIsOnlyWrittenWithoutGroupIds()
+
+
+        [TestMethod]
+        public void ReferencesOfUnknownTypeAreNotWritten()
+        {
+            ProductCatalog catalog = _GenerateCatalog();
+            catalog.Products[0].References.Add(new Reference() { Type = ReferenceTypes.Unknown, IdTo = "P4" });
+            RecordingLogService logService = new RecordingLogService();
+
+            MemoryStream ms = new MemoryStream();
+            catalog.Save(ms, new BMECatExtensions() { LogService = logService });
+            XmlDocument doc = _LoadDocument(ms, out XmlNamespaceManager nsmgr);
+
+            Assert.AreEqual(2, doc.SelectNodes("//bmecat:PRODUCT_REFERENCE", nsmgr)!.Count);
+            Assert.AreEqual(0, doc.SelectNodes("//bmecat:PRODUCT_REFERENCE[not(@type) or @type='']", nsmgr)!.Count);
+            Assert.AreEqual(1, logService.Warnings.Count);
+            StringAssert.Contains(logService.Warnings[0], "P4");
+        } // !ReferencesOfUnknownTypeAreNotWritten()
+
+
+        [TestMethod]
+        public void StockIsNotWrittenAsItIsNoBMECat2005Element()
+        {
+            ProductCatalog catalog = _GenerateCatalog();
+            catalog.Products[0].Stock = 100;
+
+            XmlDocument doc = _WriteToDocument(catalog, out XmlNamespaceManager nsmgr);
+
+            Assert.IsNull(doc.SelectSingleNode("//bmecat:STOCK", nsmgr));
+        } // !StockIsNotWrittenAsItIsNoBMECat2005Element()
+
+
         [TestMethod]
         public void FeaturesAndClassificationSurviveRoundtrip()
         {
@@ -222,6 +319,24 @@ namespace BMECat.net_Test
             Assert.AreEqual("1", mappings[1].CatalogGroupId);
             Assert.IsNull(mappings[1].Order);
         } // !CatalogGroupMappingsSurviveRoundtrip()
+
+
+        [TestMethod]
+        public void CatalogGroupMappingsWithoutIdsAreNotWritten()
+        {
+            ProductCatalog catalog = _GenerateCatalog();
+            catalog.Products[0].ProductCatalogGroupMappings.Add(new ProductCatalogGroupMapping() { CatalogGroupId = null });
+            catalog.Products.Add(new Product()
+            {
+                DescriptionShort = "Produkt ohne Nummer",
+                ProductCatalogGroupMappings = { new ProductCatalogGroupMapping() { CatalogGroupId = "11" } }
+            });
+
+            XmlDocument doc = _WriteToDocument(catalog, out XmlNamespaceManager nsmgr);
+
+            Assert.AreEqual(2, doc.SelectNodes("//bmecat:PRODUCT_TO_CATALOGGROUP_MAP", nsmgr)!.Count);
+            Assert.AreEqual(0, doc.SelectNodes("//bmecat:PRODUCT_TO_CATALOGGROUP_MAP[bmecat:PROD_ID='' or bmecat:CATALOG_GROUP_ID='']", nsmgr)!.Count);
+        } // !CatalogGroupMappingsWithoutIdsAreNotWritten()
         #endregion // !Catalog structure
 
 
@@ -238,11 +353,83 @@ namespace BMECat.net_Test
 
 
         [TestMethod]
+        public void WriterUsesTheBMECat2005Namespace()
+        {
+            XmlDocument doc = _WriteToDocument(_GenerateCatalog(), out XmlNamespaceManager _);
+
+            Assert.AreEqual("http://www.bmecat.org/bmecat/2005", doc.DocumentElement!.NamespaceURI);
+            Assert.AreEqual("2005", doc.DocumentElement.GetAttribute("version"));
+        } // !WriterUsesTheBMECat2005Namespace()
+
+
+        [TestMethod]
         public void WrittenDocumentConformsToTheSchema()
         {
-            // the writer uses the namespace of the 2005 final draft, the schema in the repository is the 2005.1 release
-            string xml = _Write(_GenerateCatalog()).TrimStart('﻿').Replace("http://www.bmecat.org/bmecat/2005fd", Namespace20051)
-                                                   .Replace("version=\"2005\"", "version=\"2005.1\"");
+            _AssertConformsToSchema(_GenerateCatalog());
+        } // !WrittenDocumentConformsToTheSchema()
+
+
+        [TestMethod]
+        public void DocumentWithAllOptionalElementsConformsToTheSchema()
+        {
+            ProductCatalog catalog = _GenerateCatalog();
+            catalog.GeneratorInfo = "BMECat.net";
+            catalog.Supplier.Fax = "+49 30 654321";
+            catalog.Supplier.BoxNo = "4711";
+            catalog.Supplier.ZipBox = "12346";
+            catalog.Supplier.State = "Berlin";
+            catalog.Supplier.ContactDetails[0].Title = "Frau";
+            catalog.Supplier.ContactDetails[0].ContactRole = "Vertrieb";
+            catalog.Supplier.ContactDetails[0].ContactDescription = "Ansprechpartnerin";
+            catalog.Supplier.ContactDetails[0].Fax = new List<string>() { "+49 30 3" };
+            catalog.Supplier.ContactDetails[0].URL = "https://example.com";
+            catalog.Buyer.ContactName = "Einkauf";
+
+            Product p = catalog.Products[0];
+            p.DescriptionLong = "Schraube M4 aus Edelstahl";
+            p.PIds.Add(new ProductId() { Type = ProductIdTypes.EAN, Id = "4012345678901" });
+            p.ManufacturerPID = "M4-100";
+            p.ManufacturerName = "Hersteller AG";
+            p.ManufacturerTypeDescription = "M4";
+            p.ERPGroupBuyer = "100";
+            p.ERPGroupSupplier = "200";
+            p.OrderDetails.ContentUnitPerOrderUnit = 100;
+            p.OrderDetails.PriceQuantity = 1;
+            p.OrderDetails.QuantityMin = 2;
+            p.OrderDetails.QuantityInterval = 2;
+            p.Prices.Add(new ProductPrice() { Currency = CurrencyCodes.EUR, PriceType = PriceTypes.NetList, Amount = 8.95m, Tax = 0.19m, LowerBound = 10 });
+            p.LogisticsDetails.Volume = 0.001m;
+            p.LogisticsDetails.Depth = 2m;
+
+            _AssertConformsToSchema(catalog);
+        } // !DocumentWithAllOptionalElementsConformsToTheSchema()
+
+
+        [TestMethod]
+        public void DocumentWithIncompleteOrConflictingDataConformsToTheSchema()
+        {
+            ProductCatalog catalog = _GenerateCatalog();
+            catalog.Supplier.Id = null;
+            catalog.Supplier.ContactName = "Zentrale";
+            catalog.Buyer.Id = "";
+            catalog.Products[0].Stock = 100;
+            catalog.Products[0].FeatureSets[0].FeatureClassificationSystem.GroupName = "Schrauben";
+            catalog.Products[0].References.Add(new Reference() { Type = ReferenceTypes.Unknown, IdTo = "P4" });
+            catalog.Products[0].ProductCatalogGroupMappings.Add(new ProductCatalogGroupMapping() { CatalogGroupId = null });
+
+            _AssertConformsToSchema(catalog);
+        } // !DocumentWithIncompleteOrConflictingDataConformsToTheSchema()
+        #endregion // !Complete document
+
+
+        #region Helpers
+        private void _AssertConformsToSchema(ProductCatalog catalog)
+        {
+            // the repository only contains the schema of the 2005.1 release, which is mapped to the namespace of the 2005 release
+            string xml = _Write(catalog).TrimStart('﻿');
+            StringAssert.Contains(xml, $"xmlns=\"{BMECatWriter.Namespace}\"");
+            xml = xml.Replace($"xmlns=\"{BMECatWriter.Namespace}\"", $"xmlns=\"{Namespace20051}\"")
+                     .Replace("version=\"2005\"", "version=\"2005.1\"");
 
             XmlReaderSettings settings = new XmlReaderSettings() { ValidationType = ValidationType.Schema };
             settings.Schemas.Add(Namespace20051, _FindSchema());
@@ -257,27 +444,15 @@ namespace BMECat.net_Test
             }
 
             Assert.AreEqual(0, errors.Count, String.Join(Environment.NewLine, errors));
-        } // !WrittenDocumentConformsToTheSchema()
-        #endregion // !Complete document
+        } // !_AssertConformsToSchema()
 
 
-        #region Helpers
         private string _FindSchema()
         {
-            // the tests run from bin/<configuration>/<framework>, the schema lives in the repository
-            DirectoryInfo? directory = new DirectoryInfo(AppContext.BaseDirectory);
-            while (directory != null)
-            {
-                string candidate = Path.Combine(directory.FullName, "Documentation and Samples", "bmecat_2005_1.xsd");
-                if (File.Exists(candidate))
-                {
-                    return candidate;
-                }
-                directory = directory.Parent;
-            }
-
-            Assert.Inconclusive("bmecat_2005_1.xsd not found");
-            return "";
+            // the schema is copied to the output directory by the test project
+            string schema = Path.Combine(AppContext.BaseDirectory, "bmecat_2005_1.xsd");
+            Assert.IsTrue(File.Exists(schema), $"{schema} not found");
+            return schema;
         } // !_FindSchema()
 
 
@@ -301,13 +476,18 @@ namespace BMECat.net_Test
         {
             MemoryStream ms = new MemoryStream();
             catalog.Save(ms);
+            return _LoadDocument(ms, out nsmgr);
+        } // !_WriteToDocument()
 
+
+        private XmlDocument _LoadDocument(MemoryStream ms, out XmlNamespaceManager nsmgr)
+        {
             XmlDocument doc = new XmlDocument();
             doc.Load(ms);
             nsmgr = new XmlNamespaceManager(doc.NameTable);
             nsmgr.AddNamespace("bmecat", doc.DocumentElement!.NamespaceURI);
             return doc;
-        } // !_WriteToDocument()
+        } // !_LoadDocument()
 
 
         private ProductCatalog _GenerateCatalog()
