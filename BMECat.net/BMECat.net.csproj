@@ -5,21 +5,27 @@
     <Authors>Stephan Stapel, stephan@s2-industries.com</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/stephanstapel/BMECat.net</PackageProjectUrl>	
-    <Version>4.5.0</Version>
-    <Copyright>Stephan Stapel, s2 industries, 2023</Copyright>
+    <Version>4.6.0</Version>
+    <Copyright>Stephan Stapel, s2 industries, 2026</Copyright>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/stephanstapel/BMECat.net</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>bme;product;catalog;catalogue;bmecat;pim</PackageTags>
-    <Description>BMECat.net is a .net open source library that allows you to read and write BMEcat descriptions would be a software component that provides developers with a set of tools and functionalities to manipulate BMEcat files programmatically. This library would enable software applications to easily integrate BMEcat support, allowing for the efficient exchange of product information between different systems and partners. Developers could use this library to parse, create, and modify BMEcat documents, accessing product data in a standardized and structured way. Overall, this library would simplify the development of software applications that rely on BMEcat for product information exchange.</Description>
+    <Description>BMECat.net is an open source .NET library for reading and writing BMEcat product catalogs. It reads BMEcat 1.2 and 2005 (including 2005fd and the many non-conformant files found in practice) into a version independent object model with products, prices, order details, features, MIME infos, references, logistics data, parties and catalog structures. Catalogs are written as BMEcat 2005 documents that conform to the official schema. Supports .NET Standard 2.0, .NET 8 and .NET 10.</Description>
     <IncludeSymbols>True</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-	<FileVersion>4.5.0.0</FileVersion>
+	<FileVersion>4.6.0.0</FileVersion>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     <AssemblyName>s2industries.BMECat.net</AssemblyName>
     <AssemblyOriginatorKeyFile>BMECat.net.snk</AssemblyOriginatorKeyFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageReleaseNotes>4.5.0: bugfix for reading non-conformant BMECat 2005 files</PackageReleaseNotes>
+    <PackageReleaseNotes>4.6.0:
+- Writer: buyer and supplier as parties incl. contact details, product features and classification, MIME infos, catalog structure with product to group mappings, product references and logistics details
+- Writer: documents conform to the BMEcat 2005 schema, uses the BMEcat 2005 namespace instead of 2005fd, STOCK and the deprecated EAN element are no longer written (the EAN is written as INTERNATIONAL_PID)
+- Reader: fixes for parties, product order, encodings, German dates and the catalog name of BMEcat 2005 documents
+- Reading and writing of numbers and dates independent from the machine culture
+- Non-seekable streams are rejected with IllegalStreamException, temporary files are always cleaned up
+- New target frameworks: netstandard2.0, net8.0 and net10.0</PackageReleaseNotes>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	<PackageId>BMECat.net</PackageId>
 	<UserSecretsId>044793d4-c1be-4cfb-b376-3573fa56847b</UserSecretsId>
