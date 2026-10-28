@@ -28,6 +28,11 @@ namespace BMECat.net
 {
     public class BMECatWriter
     {
+        /// <summary>
+        /// Namespace of the BMECat 2005 release
+        /// </summary>
+        public const string Namespace = "http://www.bmecat.org/bmecat/2005";
+
         public ProductCatalog Catalog { get; private set; }
         private XmlTextWriter Writer { get; set; }
 
@@ -49,7 +54,7 @@ namespace BMECat.net
             #region XML-Kopfbereich
             Writer.WriteStartElement("BMECAT");
             Writer.WriteAttributeString("version", "2005");
-            Writer.WriteAttributeString("xmlns", "http://www.bmecat.org/bmecat/2005fd");
+            Writer.WriteAttributeString("xmlns", Namespace);
             #endregion // !XML-Kopfbereich
 
             #region Header
@@ -69,28 +74,28 @@ namespace BMECat.net
             _writeTransport(Writer, this.Catalog.Transport);
             Writer.WriteEndElement(); // !CATALOG
 
+            // BMECat 2005 describes buyer and supplier as parties, the header only references them
             if (this.Catalog.Buyer != null)
             {
-                Writer.WriteStartElement("BUYER");
-                if (!String.IsNullOrEmpty(this.Catalog.Buyer.Id))
-                {
-                    Writer.WriteStartElement("BUYER_ID");
-                    Writer.WriteAttributeString("type", "buyer_specific");
-                    Writer.WriteString(this.Catalog.Buyer.Id);
-                    Writer.WriteEndElement(); // !BUYER_ID
-                }
-                _writeOptionalElementString(Writer, "BUYER_NAME", this.Catalog.Buyer.Name);
+                _writeOptionalElementString(Writer, "BUYER_IDREF", _partyId(this.Catalog.Buyer, "buyer"), new Dictionary<string, string>() { { "type", "buyer_specific" } });
+            }
 
-                Writer.WriteStartElement("ADDRESS");
-                Writer.WriteAttributeString("type", "buyer");
-                Writer.WriteElementString("NAME", this.Catalog.Buyer.Name);
-                if (!String.IsNullOrEmpty(this.Catalog.Buyer.ContactName))
-                {
-                    Writer.WriteElementString("CONTACT", this.Catalog.Buyer.ContactName);
-                }
-                Writer.WriteEndElement(); // !ADDRESS
+            if (this.Catalog.Supplier != null)
+            {
+                _writeOptionalElementString(Writer, "SUPPLIER_IDREF", _partyId(this.Catalog.Supplier, "supplier"), new Dictionary<string, string>() { { "type", "supplier_specific" } });
+            }
+            else
+            {
+                // SUPPLIER_IDREF is mandatory, but there is no party it could reference
+                extensions?.LogService?.Warn("The catalog has no supplier, the written document does not conform to the BMECat schema");
+            }
 
-                Writer.WriteEndElement(); // !BUYER
+            if ((this.Catalog.Buyer != null) || (this.Catalog.Supplier != null))
+            {
+                Writer.WriteStartElement("PARTIES");
+                _writeParty(this.Catalog.Buyer, "buyer", extensions);
+                _writeParty(this.Catalog.Supplier, "supplier", extensions);
+                Writer.WriteEndElement(); // !PARTIES
             }
 
             Writer.WriteEndElement(); // !HEADER
@@ -98,6 +103,8 @@ namespace BMECat.net
 
             #region PRODUCTS
             Writer.WriteStartElement("T_NEW_CATALOG");
+            _writeCatalogGroupSystem(this.Catalog.CatalogStructures);
+
             foreach(Product product in this.Catalog.Products)
             {
                 Writer.WriteStartElement("PRODUCT");
@@ -114,21 +121,24 @@ namespace BMECat.net
                 }
 
 
-                /// deprecate: this element will be removed soon according to the BMECat 200 documentation
-                ProductId eanPId = product.PIds.FirstOrDefault(p => p.Type.Equals(ProductIdTypes.EAN));
-                if (eanPId != null)
-                {
-                    _writeOptionalElementString(Writer, "EAN", eanPId.Id);
-                }
                 
-                _writeOptionalElementString(Writer, "STOCK", _formatInteger(product.Stock));
                 _writeOptionalElementString(Writer, "MANUFACTURER_PID", String.Format("{0}", product.ManufacturerPID));
                 _writeOptionalElementString(Writer, "MANUFACTURER_NAME", String.Format("{0}", product.ManufacturerName));
                 _writeOptionalElementString(Writer, "MANUFACTURER_TYPE_DESCR", String.Format("{0}", product.ManufacturerTypeDescription));
+                _writeOptionalElementString(Writer, "ERP_GROUP_BUYER", String.Format("{0}", product.ERPGroupBuyer));
                 _writeOptionalElementString(Writer, "ERP_GROUP_SUPPLIER", String.Format("{0}", product.ERPGroupSupplier));
-                _writeOptionalElementString(Writer, "ERP_GROUP_BUYER", String.Format("{0}", product.ERPGroupBuyer));             
+
+                foreach (string keyword in product.Keywords ?? new List<string>())
+                {
+                    _writeOptionalElementString(Writer, "KEYWORD", keyword);
+                }
 
                 Writer.WriteEndElement(); // !PRODUCT_DETAILS
+
+                foreach (FeatureSet featureSet in product.FeatureSets ?? new List<FeatureSet>())
+                {
+                    _writeFeatureSet(featureSet, extensions);
+                }
 
                 if (product.OrderDetails != null)
                 {
@@ -164,7 +174,50 @@ namespace BMECat.net
                     Writer.WriteEndElement(); // !PRODUCT_PRICE_DETAILS
                 }
 
+                _writeMimeInfos(product.MimeInfos);
+
+                foreach (Reference reference in product.References ?? new List<Reference>())
+                {
+                    if (String.IsNullOrEmpty(reference.IdTo))
+                    {
+                        continue;
+                    }
+
+                    if (reference.Type == ReferenceTypes.Unknown)
+                    {
+                        // the type attribute is mandatory, a reference of unknown type cannot be written
+                        extensions?.LogService?.Warn($"Product {product.No} references {reference.IdTo} without known type, the reference is not written");
+                        continue;
+                    }
+
+                    Writer.WriteStartElement("PRODUCT_REFERENCE");
+                    Writer.WriteAttributeString("type", reference.Type.EnumToString());
+                    Writer.WriteElementString("PROD_ID_TO", reference.IdTo);
+                    Writer.WriteEndElement(); // !PRODUCT_REFERENCE
+                }
+
+                _writeLogisticsDetails(product.LogisticsDetails);
+
                 Writer.WriteEndElement(); // !PRODUCT
+            }
+
+            foreach (Product product in this.Catalog.Products)
+            {
+                foreach (ProductCatalogGroupMapping mapping in product.ProductCatalogGroupMappings ?? new List<ProductCatalogGroupMapping>())
+                {
+                    // both ids are mandatory, a mapping without them would reference nothing
+                    if (String.IsNullOrEmpty(product.No) || String.IsNullOrEmpty(mapping?.CatalogGroupId))
+                    {
+                        continue;
+                    }
+
+                    Writer.WriteStartElement("PRODUCT_TO_CATALOGGROUP_MAP");
+                    Writer.WriteAttributeString("mode", "new");
+                    Writer.WriteElementString("PROD_ID", product.No);
+                    Writer.WriteElementString("CATALOG_GROUP_ID", mapping.CatalogGroupId);
+                    _writeOptionalElementString(Writer, "PRODUCT_TO_CATALOGGROUP_MAP_ORDER", _formatInteger(mapping.Order));
+                    Writer.WriteEndElement(); // !PRODUCT_TO_CATALOGGROUP_MAP
+                }
             }
             Writer.WriteEndElement(); // !T_NEW_CATALOG
             #endregion // !ARTICLES
@@ -188,6 +241,229 @@ namespace BMECat.net
                 fs.Flush();
             }
         } // !SaveAsync()
+
+
+        /// <summary>
+        /// The header references the parties by their id, parties without id are identified by their role
+        /// </summary>
+        private static string _partyId(Party party, string role)
+        {
+            return String.IsNullOrEmpty(party.Id) ? role : party.Id;
+        } // !_partyId()
+
+
+        private void _writeParty(Party party, string role, BMECatExtensions extensions)
+        {
+            if (party == null)
+            {
+                return;
+            }
+
+            string partyId = _partyId(party, role);
+            Writer.WriteStartElement("PARTY");
+            _writeOptionalElementString(Writer, "PARTY_ID", partyId, new Dictionary<string, string>() { { "type", $"{role}_specific" } });
+            Writer.WriteElementString("PARTY_ROLE", role);
+
+            Writer.WriteStartElement("ADDRESS");
+            _writeOptionalElementString(Writer, "NAME", party.Name);
+            _writeOptionalElementString(Writer, "NAME2", party.Name2);
+            _writeOptionalElementString(Writer, "NAME3", party.Name3);
+            _writeOptionalElementString(Writer, "DEPARTMENT", party.Department);
+
+            // CONTACT and CONTACT_DETAILS are alternatives, the structured contact details take precedence
+            List<ContactDetails> contacts = party.ContactDetails ?? new List<ContactDetails>();
+            if (contacts.Count == 0)
+            {
+                _writeOptionalElementString(Writer, "CONTACT", party.ContactName);
+            }
+            else if (!String.IsNullOrEmpty(party.ContactName))
+            {
+                extensions?.LogService?.Warn($"Party {partyId} has a contact name and contact details, only the contact details are written");
+            }
+
+            for (int i = 0; i < contacts.Count; i++)
+            {
+                ContactDetails contact = contacts[i];
+                Writer.WriteStartElement("CONTACT_DETAILS");
+
+                // CONTACT_ID is mandatory, contacts without id are numbered within their party
+                Writer.WriteElementString("CONTACT_ID", String.IsNullOrEmpty(contact.Id) ? $"{partyId}-{i + 1}" : contact.Id);
+                _writeOptionalElementString(Writer, "CONTACT_NAME", contact.Name);
+                _writeOptionalElementString(Writer, "FIRST_NAME", contact.FirstName);
+                _writeOptionalElementString(Writer, "TITLE", contact.Title);
+                _writeOptionalElementString(Writer, "ACADEMIC_TITLE", contact.AcademicTitle);
+                _writeOptionalElementString(Writer, "CONTACT_ROLE", contact.ContactRole);
+                _writeOptionalElementString(Writer, "CONTACT_DESCR", contact.ContactDescription);
+                foreach (string phone in contact.Phone ?? new List<string>())
+                {
+                    _writeOptionalElementString(Writer, "PHONE", phone);
+                }
+                foreach (string fax in contact.Fax ?? new List<string>())
+                {
+                    _writeOptionalElementString(Writer, "FAX", fax);
+                }
+                _writeOptionalElementString(Writer, "URL", contact.URL);
+                if (!String.IsNullOrEmpty(contact.Emails))
+                {
+                    Writer.WriteStartElement("EMAILS");
+                    Writer.WriteElementString("EMAIL", contact.Emails);
+                    Writer.WriteEndElement(); // !EMAILS
+                }
+                Writer.WriteEndElement(); // !CONTACT_DETAILS
+            }
+
+            _writeOptionalElementString(Writer, "STREET", party.Street);
+            _writeOptionalElementString(Writer, "ZIP", party.Zip);
+            _writeOptionalElementString(Writer, "BOXNO", party.BoxNo);
+            _writeOptionalElementString(Writer, "ZIPBOX", party.ZipBox);
+            _writeOptionalElementString(Writer, "CITY", party.City);
+            _writeOptionalElementString(Writer, "STATE", party.State);
+            _writeOptionalElementString(Writer, "COUNTRY", party.Country);
+            _writeOptionalElementString(Writer, "VAT_ID", party.VATID);
+            _writeOptionalElementString(Writer, "PHONE", party.Phone);
+            _writeOptionalElementString(Writer, "FAX", party.Fax);
+            Writer.WriteEndElement(); // !ADDRESS
+
+            Writer.WriteEndElement(); // !PARTY
+        } // !_writeParty()
+
+
+        private void _writeFeatureSet(FeatureSet featureSet, BMECatExtensions extensions)
+        {
+            Writer.WriteStartElement("PRODUCT_FEATURES");
+
+            FeatureClassificationSystem classification = featureSet.FeatureClassificationSystem;
+            if (classification != null)
+            {
+                _writeOptionalElementString(Writer, "REFERENCE_FEATURE_SYSTEM_NAME", classification.Classification);
+
+                // REFERENCE_FEATURE_GROUP_ID and REFERENCE_FEATURE_GROUP_NAME are alternatives, the ids take precedence
+                List<string> groupIds = (classification.GroupIds ?? new List<FeatureClassificationSystemGroupId>()).Select(g => g?.Name)
+                                                                                                                 .Where(name => !String.IsNullOrEmpty(name))
+                                                                                                                 .ToList();
+                foreach (string groupId in groupIds)
+                {
+                    Writer.WriteElementString("REFERENCE_FEATURE_GROUP_ID", groupId);
+                }
+
+                if (groupIds.Count == 0)
+                {
+                    _writeOptionalElementString(Writer, "REFERENCE_FEATURE_GROUP_NAME", classification.GroupName);
+                }
+                else if (!String.IsNullOrEmpty(classification.GroupName))
+                {
+                    extensions?.LogService?.Warn($"Feature system {classification.Classification} has group ids and a group name, only the group ids are written");
+                }
+            }
+
+            foreach (Feature feature in featureSet.Features ?? new List<Feature>())
+            {
+                Writer.WriteStartElement("FEATURE");
+                Writer.WriteElementString("FNAME", feature.Name ?? "");
+                foreach (string value in feature.Values ?? new List<string>())
+                {
+                    Writer.WriteElementString("FVALUE", value ?? "");
+                }
+                _writeOptionalElementString(Writer, "FUNIT", feature.Unit, extensions);
+                _writeOptionalElementString(Writer, "FORDER", feature.Order);
+                _writeOptionalElementString(Writer, "FDESCR", feature.Description);
+                Writer.WriteEndElement(); // !FEATURE
+            }
+
+            Writer.WriteEndElement(); // !PRODUCT_FEATURES
+        } // !_writeFeatureSet()
+
+
+        private void _writeMimeInfos(List<MimeInfo> mimeInfos)
+        {
+            if ((mimeInfos == null) || (mimeInfos.Count == 0))
+            {
+                return;
+            }
+
+            Writer.WriteStartElement("MIME_INFO");
+            foreach (MimeInfo mimeInfo in mimeInfos)
+            {
+                Writer.WriteStartElement("MIME");
+                _writeOptionalElementString(Writer, "MIME_TYPE", mimeInfo.MimeType.EnumToString());
+                Writer.WriteElementString("MIME_SOURCE", mimeInfo.Source ?? "");
+                _writeOptionalElementString(Writer, "MIME_DESCR", mimeInfo.Description);
+                _writeOptionalElementString(Writer, "MIME_ALT", mimeInfo.Alt);
+                _writeOptionalElementString(Writer, "MIME_PURPOSE", mimeInfo.Purpose);
+                _writeOptionalElementString(Writer, "MIME_ORDER", _formatInteger(mimeInfo.Order));
+                Writer.WriteEndElement(); // !MIME
+            }
+            Writer.WriteEndElement(); // !MIME_INFO
+        } // !_writeMimeInfos()
+
+
+        private void _writeLogisticsDetails(LogisticsDetails logisticsDetails)
+        {
+            if (logisticsDetails == null)
+            {
+                return;
+            }
+
+            Writer.WriteStartElement("PRODUCT_LOGISTIC_DETAILS");
+            foreach (string customsTariffNumber in logisticsDetails.CustomsTariffNumber ?? new List<string>())
+            {
+                if (String.IsNullOrEmpty(customsTariffNumber))
+                {
+                    continue;
+                }
+
+                Writer.WriteStartElement("CUSTOMS_TARIFF_NUMBER");
+                Writer.WriteElementString("CUSTOMS_NUMBER", customsTariffNumber);
+                Writer.WriteEndElement(); // !CUSTOMS_TARIFF_NUMBER
+            }
+
+            _writeOptionalElementString(Writer, "COUNTRY_OF_ORIGIN", logisticsDetails.CountryOfOrigin?.EnumToString());
+
+            if (logisticsDetails.Volume.HasValue || logisticsDetails.Weight.HasValue || logisticsDetails.Length.HasValue ||
+                logisticsDetails.Width.HasValue || logisticsDetails.Depth.HasValue)
+            {
+                Writer.WriteStartElement("PRODUCT_DIMENSIONS");
+                _writeOptionalElementString(Writer, "VOLUME", _formatDecimal(logisticsDetails.Volume));
+                _writeOptionalElementString(Writer, "WEIGHT", _formatDecimal(logisticsDetails.Weight));
+                _writeOptionalElementString(Writer, "LENGTH", _formatDecimal(logisticsDetails.Length));
+                _writeOptionalElementString(Writer, "WIDTH", _formatDecimal(logisticsDetails.Width));
+                _writeOptionalElementString(Writer, "DEPTH", _formatDecimal(logisticsDetails.Depth));
+                Writer.WriteEndElement(); // !PRODUCT_DIMENSIONS
+            }
+            Writer.WriteEndElement(); // !PRODUCT_LOGISTIC_DETAILS
+        } // !_writeLogisticsDetails()
+
+
+        private void _writeCatalogGroupSystem(List<CatalogStructure> catalogStructures)
+        {
+            if ((catalogStructures == null) || (catalogStructures.Count == 0))
+            {
+                return;
+            }
+
+            Writer.WriteStartElement("CATALOG_GROUP_SYSTEM");
+            foreach (CatalogStructure catalogStructure in catalogStructures)
+            {
+                Writer.WriteStartElement("CATALOG_STRUCTURE");
+                if (catalogStructure.Type.HasValue)
+                {
+                    Writer.WriteAttributeString("type", catalogStructure.Type.Value.EnumToString());
+                }
+                Writer.WriteElementString("GROUP_ID", catalogStructure.GroupId ?? "");
+                Writer.WriteElementString("GROUP_NAME", catalogStructure.GroupName ?? "");
+                Writer.WriteElementString("PARENT_ID", catalogStructure.ParentId ?? ""); // mandatory, also for the root
+                _writeOptionalElementString(Writer, "GROUP_ORDER", catalogStructure.GroupOrder);
+                _writeMimeInfos(catalogStructure.MimeInfos);
+                Writer.WriteEndElement(); // !CATALOG_STRUCTURE
+            }
+            Writer.WriteEndElement(); // !CATALOG_GROUP_SYSTEM
+        } // !_writeCatalogGroupSystem()
+
+
+        private static string _formatDecimal(decimal? value)
+        {
+            return value.HasValue ? value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : null;
+        } // !_formatDecimal()
 
 
         private void _writeTransport(XmlTextWriter writer, TransportConditions transportCondition)

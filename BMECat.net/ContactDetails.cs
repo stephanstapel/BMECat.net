@@ -24,16 +24,16 @@ namespace BMECat.net
 {
     public class ContactDetails
     {
-        public string Id { get; internal set; }
-        public string Name { get; internal set; }
-        public string FirstName { get; internal set; }
-        public string Title { get; internal set; }
-        public string AcademicTitle { get; internal set; }
-        public string ContactRole { get; internal set; }
-        public string ContactDescription { get; internal set; }        
-        public List<string> Phone { get; internal set; } = new List<string>();
-        public List<string> Fax { get; internal set; } = new List<string>();
-        public string URL { get; internal set; }
-        public string Emails { get; internal set; }
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string FirstName { get; set; }
+        public string Title { get; set; }
+        public string AcademicTitle { get; set; }
+        public string ContactRole { get; set; }
+        public string ContactDescription { get; set; }        
+        public List<string> Phone { get; set; } = new List<string>();
+        public List<string> Fax { get; set; } = new List<string>();
+        public string URL { get; set; }
+        public string Emails { get; set; }
     }
 }
