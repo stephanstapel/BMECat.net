@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="..\Documentation and Samples\bmecat_2005_1.xsd" Link="bmecat_2005_1.xsd" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\BMECat.net\BMECat.net.csproj" />
   </ItemGroup>
 

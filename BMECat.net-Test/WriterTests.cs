@@ -241,7 +241,8 @@ namespace BMECat.net_Test
                 CatalogVersion = "001.003",
                 CatalogName = "Office Material",
                 GenerationDate = new DateTime(2004, 8, 20, 10, 59, 54),
-                Currency = CurrencyCodes.EUR
+                Currency = CurrencyCodes.EUR,
+                Supplier = new Party() { Id = "SUP-1", Name = "Lieferant GmbH" }
             };
 
             catalog.Products.Add(new Product()

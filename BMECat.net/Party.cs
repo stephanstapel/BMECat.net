@@ -27,18 +27,18 @@ namespace BMECat.net
         public string ContactName { get; set; }
 
         public List<ContactDetails> ContactDetails { get; set; } = new List<ContactDetails>();
-        public string Name2 { get; internal set; }
-        public string Name3 { get; internal set; }
-        public string Street { get; internal set; }
-        public string Zip { get; internal set; }
-        public string BoxNo { get; internal set; }
-        public string ZipBox { get; internal set; }
-        public string City { get; internal set; }
-        public string State { get; internal set; }
-        public string Country { get; internal set; }
-        public string VATID { get; internal set; }
-        public string Phone { get; internal set; }
-        public string Fax { get; internal set; }
-        public string Department { get; internal set; }
+        public string Name2 { get; set; }
+        public string Name3 { get; set; }
+        public string Street { get; set; }
+        public string Zip { get; set; }
+        public string BoxNo { get; set; }
+        public string ZipBox { get; set; }
+        public string City { get; set; }
+        public string State { get; set; }
+        public string Country { get; set; }
+        public string VATID { get; set; }
+        public string Phone { get; set; }
+        public string Fax { get; set; }
+        public string Department { get; set; }
     }
 }

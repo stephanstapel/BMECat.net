@@ -61,12 +61,12 @@ namespace BMECat.net_Test
         public void IntegerElementsAreWrittenWithoutGroupSeparator_GermanCulture()
         {
             ProductCatalog catalog = _GenerateCatalog();
-            catalog.Products.First().Stock = 100000;
+            catalog.Products.First().OrderDetails = new OrderDetails() { OrderUnit = new QuantityCode() { ClearText = "C62" }, ContentUnitPerOrderUnit = 100000 };
             catalog.Products.First().Prices.First().LowerBound = 1000;
 
             string xml = _RunWithCulture(GERMAN, () => _WriteCatalog(catalog));
 
-            StringAssert.Contains(xml, "<STOCK>100000</STOCK>");
+            StringAssert.Contains(xml, "<NO_CU_PER_OU>100000</NO_CU_PER_OU>");
             StringAssert.Contains(xml, "<LOWER_BOUND>1000</LOWER_BOUND>");
         } // !IntegerElementsAreWrittenWithoutGroupSeparator_GermanCulture()
 
@@ -189,18 +189,18 @@ namespace BMECat.net_Test
 
 
         [TestMethod]
-        public void StockIsReadIdenticallyAcrossCultures()
+        public void ContentUnitsPerOrderUnitAreReadIdenticallyAcrossCultures()
         {
             ProductCatalog catalog = _GenerateCatalog();
-            catalog.Products.First().Stock = 100000;
+            catalog.Products.First().OrderDetails = new OrderDetails() { OrderUnit = new QuantityCode() { ClearText = "C62" }, ContentUnitPerOrderUnit = 100000 };
             string xml = _WriteCatalog(catalog);
 
-            int? germanStock = _RunWithCulture(GERMAN, () => _ReadCatalog(xml).Products.First().Stock);
-            int? americanStock = _RunWithCulture(AMERICAN, () => _ReadCatalog(xml).Products.First().Stock);
+            int? germanContentUnits = _RunWithCulture(GERMAN, () => _ReadCatalog(xml).Products.First().OrderDetails.ContentUnitPerOrderUnit);
+            int? americanContentUnits = _RunWithCulture(AMERICAN, () => _ReadCatalog(xml).Products.First().OrderDetails.ContentUnitPerOrderUnit);
 
-            Assert.AreEqual(100000, germanStock);
-            Assert.AreEqual(germanStock, americanStock);
-        } // !StockIsReadIdenticallyAcrossCultures()
+            Assert.AreEqual(100000, germanContentUnits);
+            Assert.AreEqual(germanContentUnits, americanContentUnits);
+        } // !ContentUnitsPerOrderUnitAreReadIdenticallyAcrossCultures()
         #endregion // !Reading numbers
 
 
